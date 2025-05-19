@@ -90,7 +90,7 @@ To set up the environment:
 1. Clone the repository: `git clone <repository-url>`.
 2. Install dependencies: `npm install`.
 3. Configure the `.env` file with the required environment variables.
-4. Start Docker services: `docker compose up --build`.
+4. Start Docker services: `docker compose up`.
 
 ## Running Tests
 
