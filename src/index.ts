@@ -9,6 +9,7 @@ import subscriptionController from './controllers/subscriptionController';
 import SubscriptionService from './services/subscriptionService';
 import asyncHandler from './utils/asyncHandler';
 import path from "node:path";
+import {ErrorResponse, SubscriptionRequest, SuccessResponse, TokenRequest} from "./types/subscription";
 
 const app = express();
 const PORT = 3000;
@@ -17,14 +18,44 @@ app.use(express.json());
 
 app.use(express.static(path.join(__dirname, '../public')));
 
-app.get('/weather/:city', asyncHandler(weatherController.getWeather));
+app.get('/weather/:city', async (req: Request<{ city: string }>, res: Response) => {
+    try {
+        await weatherController.getWeather(req, res);
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        res.status(500).json({ error: `Failed to fetch weather: ${errorMessage}` });
+    }
+});
 
-app.post('/subscribe', asyncHandler(subscriptionController.subscribe));
-app.get('/confirm/:token', asyncHandler(subscriptionController.confirmSubscription));
-app.get('/unsubscribe/:token', asyncHandler(subscriptionController.unsubscribe));
+app.post('/subscribe', async (req: Request<{}, {}, SubscriptionRequest>, res: Response<SuccessResponse | ErrorResponse>) => {
+    try {
+        await subscriptionController.subscribe(req, res);
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        res.status(500).json({ error: `Failed to subscribe: ${errorMessage}` });
+    }
+});
+
+app.get('/confirm/:token', async (req: Request<TokenRequest>, res: Response<SuccessResponse | ErrorResponse>) => {
+    try {
+        await subscriptionController.confirmSubscription(req, res);
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        res.status(500).json({ error: `Failed to confirm subscription: ${errorMessage}` });
+    }
+});
+
+app.get('/unsubscribe/:token', async (req: Request<TokenRequest>, res: Response<SuccessResponse | ErrorResponse>) => {
+    try {
+        await subscriptionController.unsubscribe(req, res);
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        res.status(500).json({ error: `Failed to unsubscribe: ${errorMessage}` });
+    }
+});
 
 app.get('/', (req: Request, res: Response) => {
-    res.send('Weather and Subscription API is running');
+    res.sendFile(path.join(__dirname, '../public/subscribe.html'));
 });
 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
