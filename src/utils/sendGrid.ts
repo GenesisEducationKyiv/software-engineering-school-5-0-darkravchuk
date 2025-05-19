@@ -25,9 +25,6 @@ export const sendConfirmationEmail = async (to: string, confirmationToken: strin
         return response;
     } catch (error) {
         console.error('Error sending email:', error);
-        // if (error.response) {
-        //     console.error('SendGrid Response:', error.response.body);
-        // }
         throw new Error('Failed to send confirmation email');
     }
 };

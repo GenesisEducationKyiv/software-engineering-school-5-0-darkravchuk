@@ -60,14 +60,14 @@ class WeatherService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const url = `http://api.weatherapi.com/v1/current.json?key=${this.apiKey}&q=${city}`;
-                console.log(`Requesting URL: ${url}`); // Debug log to see the full URL
+                console.log(`Requesting URL: ${url}`);
                 const response = yield axios_1.default.get(url);
                 const { current } = response.data;
                 return {
-                    temperature: current.temp_c, // Temperature in Celsius
-                    description: current.condition.text, // Weather description
+                    temperature: current.temp_c,
+                    description: current.condition.text,
                     humidity: current.humidity,
-                    pressure: current.pressure_mb, // Pressure in millibars
+                    pressure: current.pressure_mb,
                 };
             }
             catch (error) {

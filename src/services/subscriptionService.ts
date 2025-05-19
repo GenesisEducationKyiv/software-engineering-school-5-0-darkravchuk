@@ -1,7 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import Subscription from '../models/Subscription';
 import SubscriptionSubject from '../utils/subscriptionSubject';
-import weatherService from './weatherService';
 import { sendConfirmationEmail } from '../utils/sendGrid';
 import EmailObserver from '../utils/emailObserver';
 
@@ -21,11 +20,6 @@ class SubscriptionService {
             confirmed: false
         });
 
-        // Register observer for weather updates
-        const observer = new EmailObserver(email);
-        SubscriptionSubject.registerObserver(observer, city, frequency);
-
-        // Send confirmation email
         await sendConfirmationEmail(email, confirmationToken);
 
         return { message: 'Subscription created. Check your email for confirmation.', confirmationToken };
@@ -37,25 +31,37 @@ class SubscriptionService {
         if (subscription.confirmed) throw new Error('Already confirmed');
         subscription.confirmed = true;
         await subscription.save();
+
+        const observer = new EmailObserver(subscription.email, subscription.unsubscribeToken);
+        await SubscriptionSubject.registerObserver(observer, subscription.city, subscription.frequency);
+
         return { message: 'Subscription confirmed successfully' };
     }
 
     async unsubscribe(unsubscribeToken: string) {
         const subscription = await Subscription.findOne({ where: { unsubscribeToken } });
         if (!subscription) throw new Error('Token not found');
-        SubscriptionSubject.removeObserver(new EmailObserver(subscription.email), subscription.city);
+        await SubscriptionSubject.removeObserver(new EmailObserver(subscription.email, subscription.unsubscribeToken), subscription.city);
         await subscription.destroy();
         return { message: 'Unsubscribed successfully' };
     }
 
-    async sendWeatherUpdates() {
-        const subscriptions = await Subscription.findAll({ where: { confirmed: true } });
-        const frequencies: ('hourly' | 'daily')[] = ['hourly', 'daily'];
-        for (const frequency of frequencies) {
-            const cities = [...new Set(subscriptions.filter(sub => sub.frequency === frequency).map(sub => sub.city))];
+    async sendWeatherUpdates(frequency: 'hourly' | 'daily') {
+        try {
+            const subscriptions = await Subscription.findAll({ where: { confirmed: true, frequency } });
+
+            if (subscriptions.length === 0) {
+                return;
+            }
+
+            const cities = [...new Set(subscriptions.map(sub => sub.city))];
+
             for (const city of cities) {
                 await SubscriptionSubject.notifyObservers(city, frequency);
             }
+        } catch (error) {
+            console.error(`[ERROR] Failed to send weather updates for ${frequency}:`, error);
+            throw error;
         }
     }
 }

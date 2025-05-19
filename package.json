@@ -16,6 +16,7 @@
   "description": "",
   "dependencies": {
     "@sendgrid/mail": "^8.1.5",
+    "@types/postmark": "^2.0.3",
     "@types/sendgrid": "^4.3.0",
     "axios": "^1.9.0",
     "dotenv": "^16.5.0",
@@ -23,6 +24,7 @@
     "node-cron": "^4.0.5",
     "nodemailer": "^7.0.3",
     "pg": "^8.16.0",
+    "postmark": "^4.0.5",
     "sequelize": "^6.37.7",
     "uuid": "^11.1.0"
   },

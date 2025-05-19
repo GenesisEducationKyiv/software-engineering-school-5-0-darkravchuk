@@ -13,9 +13,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const uuid_1 = require("uuid");
-const Subscription_1 = __importDefault(require("../models/Subscription")); // Note: File name corrected to match case
+const Subscription_1 = __importDefault(require("../models/Subscription"));
 const subscriptionSubject_1 = __importDefault(require("../utils/subscriptionSubject"));
-const weatherService_1 = __importDefault(require("./weatherService"));
+const emailService_1 = require("../utils/emailService");
+const emailObserver_1 = __importDefault(require("../utils/emailObserver"));
 class SubscriptionService {
     subscribe(email, city, frequency) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -32,10 +33,7 @@ class SubscriptionService {
                 unsubscribeToken,
                 confirmed: false
             });
-            subscriptionSubject_1.default.subscribe({
-                update: (message) => console.log(`Email ${email} received: ${message}`),
-            }, email);
-            subscriptionSubject_1.default.notify(`New subscription request for ${email} with confirmation token ${confirmationToken}`, frequency);
+            yield (0, emailService_1.sendConfirmationEmail)(email, confirmationToken);
             return { message: 'Subscription created. Check your email for confirmation.', confirmationToken };
         });
     }
@@ -48,7 +46,8 @@ class SubscriptionService {
                 throw new Error('Already confirmed');
             subscription.confirmed = true;
             yield subscription.save();
-            subscriptionSubject_1.default.notify(`Subscription confirmed for ${subscription.email}`, subscription.frequency);
+            const observer = new emailObserver_1.default(subscription.email, subscription.unsubscribeToken);
+            subscriptionSubject_1.default.registerObserver(observer, subscription.city, subscription.frequency);
             return { message: 'Subscription confirmed successfully' };
         });
     }
@@ -57,21 +56,31 @@ class SubscriptionService {
             const subscription = yield Subscription_1.default.findOne({ where: { unsubscribeToken } });
             if (!subscription)
                 throw new Error('Token not found');
-            subscriptionSubject_1.default.unsubscribe({
-                update: () => { },
-            });
+            subscriptionSubject_1.default.removeObserver(new emailObserver_1.default(subscription.email, subscription.unsubscribeToken), subscription.city);
             yield subscription.destroy();
-            subscriptionSubject_1.default.notify(`Unsubscribed ${subscription.email}`, subscription.frequency);
             return { message: 'Unsubscribed successfully' };
         });
     }
-    sendWeatherUpdates() {
+    sendWeatherUpdates(frequency) {
         return __awaiter(this, void 0, void 0, function* () {
-            const subscriptions = yield Subscription_1.default.findAll({ where: { confirmed: true } });
-            for (const sub of subscriptions) {
-                const weather = yield weatherService_1.default.getWeather(sub.city);
-                const message = `Weather update for ${sub.city}: ${weather.temperature}°C, ${weather.description}`;
-                subscriptionSubject_1.default.notify(message, sub.frequency);
+            try {
+                console.log(`[DEBUG] Starting sendWeatherUpdates for ${frequency} subscriptions...`);
+                const subscriptions = yield Subscription_1.default.findAll({ where: { confirmed: true, frequency } });
+                console.log(`[DEBUG] ${frequency} subscriptions fetched:`, subscriptions);
+                if (subscriptions.length === 0) {
+                    console.log(`[DEBUG] No confirmed ${frequency} subscriptions found.`);
+                    return;
+                }
+                const cities = [...new Set(subscriptions.map(sub => sub.city))];
+                console.log(`[DEBUG] ${frequency} cities to process:`, cities);
+                for (const city of cities) {
+                    console.log(`[DEBUG] Notifying observers for ${city} (${frequency})...`);
+                    yield subscriptionSubject_1.default.notifyObservers(city, frequency);
+                }
+            }
+            catch (error) {
+                console.error(`[ERROR] Failed to send weather updates for ${frequency}:`, error);
+                throw error; // Re-throw to ensure it’s caught in index.ts
             }
         });
     }

@@ -1,32 +1,49 @@
-import sgMail from '@sendgrid/mail';
+import { MailService } from '@sendgrid/mail';
 import { Observer, WeatherData } from '../types';
+
+const sgMail = new MailService();
+sgMail.setApiKey(process.env.SENDGRID_API_KEY || '');
 
 class EmailObserver implements Observer {
     private email: string;
+    private unsubscribeToken: string;
 
-    constructor(email: string) {
+    constructor(email: string, unsubscribeToken: string) {
         this.email = email;
+        this.unsubscribeToken = unsubscribeToken;
+    }
+
+    getEmail(): string {
+        return this.email;
+    }
+
+    equals(other: EmailObserver): boolean {
+        return this.email === other.email;
     }
 
     async update(city: string, weather: WeatherData): Promise<void> {
+        const unsubscribeLink = `http://localhost:3000/unsubscribe/${this.unsubscribeToken}`; // Update to your domain in production
         const msg = {
+            from: {
+                email: 'darija.kravchuk@knu.ua',
+                name: 'Weather Updates'
+            },
             to: this.email,
-            from: 'darija.kravchuk@knu.ua', // Replace with your verified sender email
             subject: `Weather Update for ${city}`,
-            text: `Weather in ${city}: ${weather.temperature}°C, ${weather.description}, Humidity: ${weather.humidity}%`,
+            text: `Weather in ${city}: ${weather.temperature}°C, ${weather.description}, Humidity: ${weather.humidity}%\n\nTo unsubscribe, click here: ${unsubscribeLink}`,
             html: `
                 <h2>Weather Update for ${city}</h2>
                 <p>Temperature: ${weather.temperature}°C</p>
                 <p>Description: ${weather.description}</p>
                 <p>Humidity: ${weather.humidity}%</p>
+                <p><a href="${unsubscribeLink}">Unsubscribe</a></p>
             `,
         };
 
         try {
-            await sgMail.send(msg);
-            console.log(`Weather update email sent to ${this.email}`);
+            const response = await sgMail.send(msg);
+            console.log(`Weather update email sent to ${this.email} with status:`, response[0].statusCode);
         } catch (error) {
-            console.error('Error sending weather update email:', error);
             throw new Error('Failed to send weather update email');
         }
     }
