@@ -7,7 +7,6 @@ import sequelize from './config/database';
 import weatherController from './controllers/weatherController';
 import subscriptionController from './controllers/subscriptionController';
 import SubscriptionService from './services/subscriptionService';
-import asyncHandler from './utils/asyncHandler';
 import path from "node:path";
 import {ErrorResponse, SubscriptionRequest, SuccessResponse, TokenRequest} from "./types/subscription";
 
@@ -67,7 +66,7 @@ async function startServer() {
     try {
         await sequelize.sync({ force: false });
 
-        cron.schedule('*/1 * * * *', () => {
+        cron.schedule('0 * * * *', () => {
             console.log('Running sendWeatherUpdates for hourly subscriptions at:', new Date().toISOString());
             SubscriptionService.sendWeatherUpdates('hourly').catch(err => {
                 console.error('[ERROR] Cron job failed for hourly:', err);
