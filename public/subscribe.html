@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Subscribe to Weather Updates</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
         body {
             font-family: 'Roboto', sans-serif;
@@ -111,28 +112,39 @@
             city: formData.get('city'),
             frequency: formData.get('frequency')
         };
+        const messageDiv = document.getElementById('message');
+
+        console.log('Sending data:', data);
 
         try {
-            const response = await fetch('/subscribe', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+            const response = await axios.post('/subscribe', data, {
+                headers: { 'Content-Type': 'application/json' }
             });
 
-            const result = await response.json();
-            const messageDiv = document.getElementById('message');
+            console.log('Server response:', response);
 
-            if (!response.ok) {
-                messageDiv.textContent = result.message || 'An unknown error occurred';
+            const result = response.data;
+
+            if (response.status === 200) {
+                messageDiv.textContent = result.message + ' Check your email for confirmation.';
+                messageDiv.className = 'success';
+            } else if (response.status === 400) {
+                messageDiv.textContent = result.error;
+                messageDiv.className = 'error';
+            } else if (response.status === 409) {
+                messageDiv.textContent = result.error;
                 messageDiv.className = 'error';
             } else {
-                messageDiv.textContent = result.message;
-                messageDiv.className = 'success';
-                messageDiv.textContent += ' Check your email for confirmation.';
+                messageDiv.textContent = 'An unexpected error occurred';
+                messageDiv.className = 'error';
             }
         } catch (error) {
-            const messageDiv = document.getElementById('message');
-            messageDiv.textContent = 'Connection error: ' + (error.message || 'Please try again');
+            console.error('Error during request:', error);
+            if (error.message.includes('409')) {
+                messageDiv.textContent = "Looks like you're already subscribed! Check your email or try a different one.";
+            } else {
+                messageDiv.textContent = 'Something went wrong. Check your email or try again.';
+            }
             messageDiv.className = 'error';
         }
     }
