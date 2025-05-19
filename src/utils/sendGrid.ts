@@ -1,15 +1,15 @@
 import sgMail from '@sendgrid/mail';
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY || '');
-console.log('SendGrid API Key:', process.env.SENDGRID_API_KEY ? 'Set' : 'Not set');
 
 export const sendConfirmationEmail = async (to: string, confirmationToken: string) => {
-    const confirmationLink = `http://localhost:3000/confirm/${confirmationToken}`;
+    const domain = process.env.DOMAIN || '';
+    const confirmationLink = `${domain}/confirm/${confirmationToken}`;
     console.log(`Preparing to send email to: ${to} with token: ${confirmationToken}`);
 
     const msg = {
         to,
-        from: 'darija.kravchuk@knu.ua',
+        from: process.env.EMAIL || '',
         subject: 'Confirm Your Weather Subscription',
         text: `Please confirm your subscription by clicking the link: ${confirmationLink}`,
         html: `

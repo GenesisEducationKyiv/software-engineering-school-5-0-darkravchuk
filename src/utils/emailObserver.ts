@@ -22,10 +22,11 @@ class EmailObserver implements Observer {
     }
 
     async update(city: string, weather: WeatherData): Promise<void> {
-        const unsubscribeLink = `http://localhost:3000/unsubscribe/${this.unsubscribeToken}`; // Update to your domain in production
+        const domain = process.env.DOMAIN || '';
+        const unsubscribeLink = `${domain}/unsubscribe/${this.unsubscribeToken}`;
         const msg = {
             from: {
-                email: 'darija.kravchuk@knu.ua',
+                email: process.env.EMAIL || '',
                 name: 'Weather Updates'
             },
             to: this.email,
