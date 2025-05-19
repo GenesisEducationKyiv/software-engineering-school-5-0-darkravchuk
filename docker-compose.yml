@@ -10,7 +10,8 @@ services:
     env_file:
       - .env
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       - NODE_ENV=production
       - DB_HOST=db
@@ -18,9 +19,6 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
-    volumes:
-      - .:/app
-      - /app/node_modules
     networks:
       - app-network
 
@@ -33,7 +31,13 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
     ports:
-      - "5433:5433"
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     networks:
       - app-network
 
