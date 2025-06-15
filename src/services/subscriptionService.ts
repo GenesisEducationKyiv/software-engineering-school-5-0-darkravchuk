@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import Subscription from '../models/Subscription';
 import SubscriptionSubject from '../utils/subscriptionSubject';
-import { sendConfirmationEmail } from '../utils/sendGrid';
+import sender from '../utils/EmailSender';
 import EmailObserver from '../utils/emailObserver';
 
 class SubscriptionService {
@@ -20,7 +20,7 @@ class SubscriptionService {
       confirmed: false
     });
 
-    await sendConfirmationEmail(email, confirmationToken);
+    await sender.sendConfirmationEmail(email, confirmationToken);
 
     return { message: 'Subscription created. Check your email for confirmation.', confirmationToken };
   }
