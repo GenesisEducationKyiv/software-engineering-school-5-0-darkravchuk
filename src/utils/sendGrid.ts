@@ -22,6 +22,7 @@ export const sendConfirmationEmail = async (to: string, confirmationToken: strin
   try {
     const response = await sgMail.send(msg);
     console.log(`Confirmation email sent to ${to}`, response);
+
     return response;
   } catch (error) {
     console.error('Error sending email:', error);

@@ -20,7 +20,6 @@ export default defineConfig([
       'indent': ['error', 2], // 2-space indentation
       'quotes': ['error', 'single'], // Single quotes
       'semi': ['error', 'always'], // Require semicolons
-      'no-unused-vars': ['warn', { vars: 'all', args: 'after-used', ignoreRestSiblings: true }],
     },
   },
 ]);
