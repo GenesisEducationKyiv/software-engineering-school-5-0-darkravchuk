@@ -7,6 +7,7 @@ class WeatherService {
 
   constructor() {
     this.apiKey = process.env.WEATHER_API_KEY || '';
+
     if (!this.apiKey) {
       throw new Error('WEATHER_API_KEY is not set in environment variables');
     }
@@ -18,6 +19,7 @@ class WeatherService {
       const response = await axios.get(url);
 
       const { current } = response.data;
+
       return {
         temperature: current.temp_c,
         description: current.condition.text,
