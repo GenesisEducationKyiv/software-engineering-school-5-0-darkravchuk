@@ -1,15 +1,5 @@
 # Adoption of the Observer Pattern for Weather Subscription Service
 
-## Context
-
-The Weather Subscription Service is a web application that enables users to subscribe to weather updates for specific cities with hourly or daily frequency, confirm their subscriptions via email, and unsubscribe using unique tokens. The application is built with a modular architecture using Node.js, Express, Sequelize ORM for PostgreSQL interactions, and integrations with WeatherAPI for fetching weather data and SendGrid for sending emails. Key functionalities include:
-
-- Fetching real-time weather data for a specified city.
-- Managing subscriptions (creation, confirmation, and cancellation).
-- Sending periodic weather updates to subscribers based on their chosen frequency (hourly or daily).
-
-A primary challenge was to design a flexible and scalable system for notifying subscribers about weather updates without tightly coupling the weather data retrieval logic with the notification mechanism. The system needed to efficiently handle a growing number of subscribers, support different update frequencies, and allow for easy extension to new notification methods (e.g., SMS or push notifications) in the future.
-
 ## Decision
 
 To address this challenge, the **Observer Pattern** was chosen. The Observer Pattern facilitates a one-to-many dependency between objects, where a subject notifies its dependent observers of state changes. In the context of the Weather Subscription Service, the Observer Pattern is implemented as follows:
@@ -75,6 +65,11 @@ Cron jobs are configured to trigger updates based on subscription frequencies, p
 
 1. **Increased Code Complexity**: Implementing the Observer Pattern requires additional classes (SubscriptionSubject, EmailObserver), adding slight complexity compared to direct calls.
 2. **Performance with Large Subscriber Bases**: If the number of subscribers grows significantly (e.g., tens of thousands), performance optimization (e.g., asynchronous processing or message queues) may be needed.
+3. In-Memory Subscriber Storage:
+   The SubscriptionSubject maintains the list of subscribers (observers) in the memory of the Node.js process. This approach has significant limitations:
+    - ***Scalability Challenges***: In-memory storage does not scale well in distributed environments. When running multiple server instances (e.g., behind a load balancer or in a containerized setup like Kubernetes), each instance maintains its own subscriber list, leading to inconsistencies unless synchronized via a centralized database or message broker.
+    - ***Data Loss on Restart or Failure***: If the server process restarts or crashes, the in-memory subscriber list is lost.
+    - ***Memory Usage***: A large subscriber base could consume significant memory, risking exhaustion in a single process, especially for high-frequency updates.
 
 
 ## Status

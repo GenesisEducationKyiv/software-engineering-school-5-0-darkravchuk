@@ -1,5 +1,15 @@
 # System Design for Weather Subscription Service
 
+## Context
+
+The Weather Subscription Service is a web application that enables users to subscribe to weather updates for specific cities with hourly or daily frequency, confirm their subscriptions via email, and unsubscribe using unique tokens. The application is built with a modular architecture using Node.js, Express, Sequelize ORM for PostgreSQL interactions, and integrations with WeatherAPI for fetching weather data and SendGrid for sending emails. Key functionalities include:
+
+- Fetching real-time weather data for a specified city.
+- Managing subscriptions (creation, confirmation, and cancellation).
+- Sending periodic weather updates to subscribers based on their chosen frequency (hourly or daily).
+
+A primary challenge was to design a flexible and scalable system for notifying subscribers about weather updates without tightly coupling the weather data retrieval logic with the notification mechanism. The system needed to efficiently handle a growing number of subscribers, support different update frequencies, and allow for easy extension to new notification methods (e.g., SMS or push notifications) in the future.
+
 ## Functional Requirements
 
 - **Subscription Management**: 
