@@ -84,7 +84,6 @@ describe('WeatherService', () => {
   it('should throw error if API key is not set', async () => {
     process.env.WEATHER_API_KEY = undefined;
 
-    // Змінюємо реалізацію axios.get, щоб зімітувати результат
     mockedAxios.get.mockRejectedValueOnce(
       new Error('Cannot read properties of undefined (reading \'data\')')
     );

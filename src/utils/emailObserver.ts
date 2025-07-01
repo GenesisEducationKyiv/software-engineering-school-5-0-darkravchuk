@@ -14,6 +14,7 @@ class EmailObserver implements Observer {
   }
 
   getEmail(): string {
+
     return this.email;
   }
 

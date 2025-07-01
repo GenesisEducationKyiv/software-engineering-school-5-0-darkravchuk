@@ -22,7 +22,7 @@ app.get('/weather/:city', async (req: Request<{ city: string }>, res: Response) 
     await weatherController.getWeather(req, res);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ error: `Failed to fetch weather: ${errorMessage}` });
+    res.status(500).json({ error: 'Internal error' });
   }
 });
 
@@ -31,7 +31,7 @@ app.post('/subscribe', async (req: Request<{}, {}, SubscriptionRequest>, res: Re
     await subscriptionController.subscribe(req, res);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ error: `Failed to subscribe: ${errorMessage}` });
+    res.status(500).json({ error: 'Internal error' });
   }
 });
 
@@ -40,7 +40,7 @@ app.get('/confirm/:token', async (req: Request<TokenRequest>, res: Response<Succ
     await subscriptionController.confirmSubscription(req, res);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ error: `Failed to confirm subscription: ${errorMessage}` });
+    res.status(500).json({ error: 'Internal error' });
   }
 });
 
@@ -49,7 +49,7 @@ app.get('/unsubscribe/:token', async (req: Request<TokenRequest>, res: Response<
     await subscriptionController.unsubscribe(req, res);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ error: `Failed to unsubscribe: ${errorMessage}` });
+    res.status(500).json({ error: 'Internal error' });
   }
 });
 

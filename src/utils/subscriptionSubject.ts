@@ -53,8 +53,10 @@ class SubscriptionSubject implements Subject {
 
     this.observers = this.observers.filter(obs => {
       if (!(obs.observer instanceof EmailObserver) || !(observer instanceof EmailObserver)) {
+
         return obs.observer !== observer || obs.city !== city;
       }
+
       return !(obs.observer.equals(observer) && obs.city === city);
     });
   }
