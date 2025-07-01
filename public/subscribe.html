@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscribe to Weather Updates</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        h1 {
+            font-size: 28px;
+            font-weight: 500;
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 16px;
+            color: #34495e;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            box-sizing: border-box;
+            border: 1px solid #dcdcdc;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #74b9ff;
+            box-shadow: 0 0 8px rgba(116, 185, 255, 0.3);
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #74b9ff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        button:hover {
+            background-color: #0984e3;
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        #message {
+            margin-top: 20px;
+            font-size: 16px;
+            text-align: center;
+        }
+        .success {
+            color: #2ecc71;
+        }
+        .error {
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+<h1>Subscribe to Weather Updates</h1>
+<form id="subscriptionForm" onsubmit="subscribe(event)">
+    <div class="form-group">
+        <label for="email">Email Address:</label>
+        <input type="email" id="email" name="email" required>
+    </div>
+    <div class="form-group">
+        <label for="city">City:</label>
+        <input type="text" id="city" name="city" required>
+    </div>
+    <div class="form-group">
+        <label for="frequency">Update Frequency:</label>
+        <select id="frequency" name="frequency" required>
+            <option value="hourly">Hourly</option>
+            <option value="daily">Daily</option>
+        </select>
+    </div>
+    <button type="submit">Subscribe</button>
+    <div id="message"></div>
+</form>
+
+<script>
+    async function subscribe(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+        const data = {
+            email: formData.get('email'),
+            city: formData.get('city'),
+            frequency: formData.get('frequency')
+        };
+        const messageDiv = document.getElementById('message');
+
+        console.log('Sending data:', data);
+
+        try {
+            const response = await axios.post('/subscribe', data, {
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            console.log('Server response:', response);
+
+            const result = response.data;
+
+            if (response.status === 200) {
+                messageDiv.textContent = result.message + ' Check your email for confirmation.';
+                messageDiv.className = 'success';
+            } else if (response.status === 400) {
+                messageDiv.textContent = result.error;
+                messageDiv.className = 'error';
+            } else if (response.status === 409) {
+                messageDiv.textContent = result.error;
+                messageDiv.className = 'error';
+            } else {
+                messageDiv.textContent = 'An unexpected error occurred';
+                messageDiv.className = 'error';
+            }
+        } catch (error) {
+            console.error('Error during request:', error);
+            if (error.message.includes('409')) {
+                messageDiv.textContent = "Looks like you're already subscribed! Check your email or try a different one.";
+            } else {
+                messageDiv.textContent = 'Something went wrong. Check your email or try again.';
+            }
+            messageDiv.className = 'error';
+        }
+    }
+</script>
+</body>
+</html>
