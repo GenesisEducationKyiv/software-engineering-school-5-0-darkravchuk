@@ -7,11 +7,11 @@ import { WeatherParams, WeatherResponse } from '../types/weather';
 const router = Router();
 
 router.get(
-    '/weather/:city',
-    validateWeatherParams,
-    handleError<WeatherParams, WeatherResponse>(
-        (req, res) => weatherController.getWeather(req, res)
-    )
+  '/weather/:city',
+  validateWeatherParams,
+  handleError<WeatherParams, WeatherResponse>(
+    (req, res) => weatherController.getWeather(req, res)
+  )
 );
 
 export default router;

@@ -56,8 +56,8 @@ class SubscriptionService implements ISubscriptionService {
     if (!subscription) throw new NotFoundError('Token not found');
 
     await subscriptionSubject.removeObserver(
-        new EmailObserver(subscription.email, subscription.unsubscribeToken),
-        subscription.city
+      new EmailObserver(subscription.email, subscription.unsubscribeToken),
+      subscription.city
     );
     await this.repository.delete(subscription);
 
@@ -75,8 +75,8 @@ class SubscriptionService implements ISubscriptionService {
       }
     } catch (error) {
       throw new WeatherUpdateError(
-          `Failed to send weather updates for ${frequency}`,
-          { error: error instanceof Error ? error.message : 'Unknown error', stack: (error as Error)?.stack }
+        `Failed to send weather updates for ${frequency}`,
+        { error: error instanceof Error ? error.message : 'Unknown error', stack: (error as Error)?.stack }
       );
     }
   }

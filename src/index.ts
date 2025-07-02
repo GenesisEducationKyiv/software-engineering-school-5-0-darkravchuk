@@ -31,14 +31,14 @@ async function scheduleWeatherUpdates() {
   cron.schedule('0 * * * *', () => {
     console.log('Running sendWeatherUpdates for hourly subscriptions at:', new Date().toISOString());
     subscriptionService.sendWeatherUpdates('hourly').catch(err =>
-        console.error('[ERROR] Cron job failed for hourly:', err)
+      console.error('[ERROR] Cron job failed for hourly:', err)
     );
   }, { timezone: 'Europe/Kyiv' });
 
   cron.schedule('0 0 * * *', () => {
     console.log('Running sendWeatherUpdates for daily subscriptions at:', new Date().toISOString());
     subscriptionService.sendWeatherUpdates('daily').catch(err =>
-        console.error('[ERROR] Cron job failed for daily:', err)
+      console.error('[ERROR] Cron job failed for daily:', err)
     );
   }, { timezone: 'Europe/Kyiv' });
 }

@@ -1,4 +1,4 @@
-import Subscription from "../models/Subscription";
+import Subscription from '../models/Subscription';
 
 export interface ISubscriptionRepository {
     findByEmail(email: string): Promise<Subscription | null>;

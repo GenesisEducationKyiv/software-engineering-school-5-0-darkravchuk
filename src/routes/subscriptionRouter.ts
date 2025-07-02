@@ -7,27 +7,27 @@ import { SubscriptionRequest, TokenRequest, SuccessResponse } from '../types/sub
 const router = Router();
 
 router.post(
-    '/subscribe',
-    validateSubscription,
-    handleError<{}, SuccessResponse, SubscriptionRequest>(
-        (req, res) => subscriptionController.subscribe(req, res)
-    )
+  '/subscribe',
+  validateSubscription,
+  handleError<{}, SuccessResponse, SubscriptionRequest>(
+    (req, res) => subscriptionController.subscribe(req, res)
+  )
 );
 
 router.get(
-    '/confirm/:token',
-    validateToken,
-    handleError<TokenRequest, SuccessResponse>(
-        (req, res) => subscriptionController.confirmSubscription(req, res)
-    )
+  '/confirm/:token',
+  validateToken,
+  handleError<TokenRequest, SuccessResponse>(
+    (req, res) => subscriptionController.confirmSubscription(req, res)
+  )
 );
 
 router.get(
-    '/unsubscribe/:token',
-    validateToken,
-    handleError<TokenRequest, SuccessResponse>(
-        (req, res) => subscriptionController.unsubscribe(req, res)
-    )
+  '/unsubscribe/:token',
+  validateToken,
+  handleError<TokenRequest, SuccessResponse>(
+    (req, res) => subscriptionController.unsubscribe(req, res)
+  )
 );
 
 export default router;

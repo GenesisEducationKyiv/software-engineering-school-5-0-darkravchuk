@@ -28,10 +28,10 @@ class WeatherService implements IWeatherService {
       const { current } = response.data;
 
       return new WeatherDataDTO(
-          current.temp_c,
-          current.condition.text,
-          current.humidity,
-          current.pressure_mb
+        current.temp_c,
+        current.condition.text,
+        current.humidity,
+        current.pressure_mb
       );
     } catch (error) {
       if (axios.isAxiosError(error)) {
