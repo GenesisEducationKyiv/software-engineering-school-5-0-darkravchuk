@@ -7,7 +7,7 @@ export interface SubscriptionRequest {
 }
 
 export interface TokenRequest {
-    token: string;
+    token: string; // Визначено як об'єкт з полем token
 }
 
 export interface SuccessResponse {
@@ -20,21 +20,21 @@ export interface ErrorResponse {
 }
 
 export const subscriptionSchema = Joi.object<SubscriptionRequest>({
-  email: Joi.string().email().required().messages({
-    'string.email': 'Email must be a valid email address',
-    'any.required': 'Email is required',
-  }),
-  city: Joi.string().required().messages({
-    'any.required': 'City is required',
-  }),
-  frequency: Joi.string().valid('hourly', 'daily').required().messages({
-    'any.only': 'Frequency must be either "hourly" or "daily"',
-    'any.required': 'Frequency is required',
-  }),
+    email: Joi.string().email().required().messages({
+        'string.email': 'Email must be a valid email address',
+        'any.required': 'Email is required',
+    }),
+    city: Joi.string().required().messages({
+        'any.required': 'City is required',
+    }),
+    frequency: Joi.string().valid('hourly', 'daily').required().messages({
+        'any.only': 'Frequency must be either "hourly" or "daily"',
+        'any.required': 'Frequency is required',
+    }),
 });
 
 export const tokenSchema = Joi.object<TokenRequest>({
-  token: Joi.string().required().messages({
-    'any.required': 'Token is required',
-  }),
+    token: Joi.string().required().messages({
+        'any.required': 'Token is required',
+    }),
 });

@@ -4,82 +4,49 @@ dotenv.config();
 import express, { Request, Response, NextFunction } from 'express';
 import cron from 'node-cron';
 import sequelize from './config/database';
-import weatherController from './controllers/weatherController';
-import subscriptionController from './controllers/subscriptionController';
+import routes from './routes/mainRouter';
+import SequelizeSubscriptionRepository from './repositories/SequelizeSubscriptionRepository';
+import path from 'path';
+
 import SubscriptionService from './services/subscriptionService';
-import path from 'node:path';
-import {ErrorResponse, SubscriptionRequest, SuccessResponse, TokenRequest} from './types/subscription';
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
-
 app.use(express.static(path.join(__dirname, '../public')));
 
-app.get('/weather/:city', async (req: Request<{ city: string }>, res: Response) => {
-  try {
-    await weatherController.getWeather(req, res);
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ error: 'Internal error' });
-  }
-});
-
-app.post('/subscribe', async (req: Request<{}, {}, SubscriptionRequest>, res: Response<SuccessResponse | ErrorResponse>) => {
-  try {
-    await subscriptionController.subscribe(req, res);
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ error: 'Internal error' });
-  }
-});
-
-app.get('/confirm/:token', async (req: Request<TokenRequest>, res: Response<SuccessResponse | ErrorResponse>) => {
-  try {
-    await subscriptionController.confirmSubscription(req, res);
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ error: 'Internal error' });
-  }
-});
-
-app.get('/unsubscribe/:token', async (req: Request<TokenRequest>, res: Response<SuccessResponse | ErrorResponse>) => {
-  try {
-    await subscriptionController.unsubscribe(req, res);
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ error: 'Internal error' });
-  }
-});
+app.use('/api', routes);
 
 app.get('/', (req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, '../public/subscribe.html'));
 });
 
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
-});
+const subscriptionRepository = new SequelizeSubscriptionRepository();
+const subscriptionService = new SubscriptionService(subscriptionRepository);
+export default subscriptionService;
+
+
+async function scheduleWeatherUpdates() {
+  cron.schedule('0 * * * *', () => {
+    console.log('Running sendWeatherUpdates for hourly subscriptions at:', new Date().toISOString());
+    subscriptionService.sendWeatherUpdates('hourly').catch(err =>
+        console.error('[ERROR] Cron job failed for hourly:', err)
+    );
+  }, { timezone: 'Europe/Kyiv' });
+
+  cron.schedule('0 0 * * *', () => {
+    console.log('Running sendWeatherUpdates for daily subscriptions at:', new Date().toISOString());
+    subscriptionService.sendWeatherUpdates('daily').catch(err =>
+        console.error('[ERROR] Cron job failed for daily:', err)
+    );
+  }, { timezone: 'Europe/Kyiv' });
+}
 
 async function startServer() {
   try {
     await sequelize.sync({ force: false });
-
-    cron.schedule('0 * * * *', () => {
-      console.log('Running sendWeatherUpdates for hourly subscriptions at:', new Date().toISOString());
-      SubscriptionService.sendWeatherUpdates('hourly').catch(err => {
-        console.error('[ERROR] Cron job failed for hourly:', err);
-      });
-    }, { timezone: 'Europe/Kyiv' });
-
-    cron.schedule('0 0 * * *', () => {
-      console.log('Running sendWeatherUpdates for daily subscriptions at:', new Date().toISOString());
-      SubscriptionService.sendWeatherUpdates('daily').catch(err => {
-        console.error('[ERROR] Cron job failed for daily:', err);
-      });
-    }, { timezone: 'Europe/Kyiv' });
-
+    await scheduleWeatherUpdates();
     app.listen(PORT, () => {
       console.log(`Server is running on http://localhost:${PORT}`);
     });

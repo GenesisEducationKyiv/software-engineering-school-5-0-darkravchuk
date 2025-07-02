@@ -117,7 +117,7 @@
         console.log('Sending data:', data);
 
         try {
-            const response = await axios.post('/subscribe', data, {
+            const response = await axios.post('api/subscription/subscribe', data, {
                 headers: { 'Content-Type': 'application/json' }
             });
 
