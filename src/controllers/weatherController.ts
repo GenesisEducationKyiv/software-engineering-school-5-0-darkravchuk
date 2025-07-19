@@ -1,12 +1,18 @@
 import { Request, Response } from 'express';
-import weatherService from '../services/weatherService';
 import { WeatherParams } from '../types/weather';
+import {IWeatherService} from '../services/WeatherService.interface';
 
-class WeatherController {
+export class WeatherController {
+  private weatherService: IWeatherService;
+
+  constructor(weatherService: IWeatherService) {
+    this.weatherService = weatherService;
+  }
+
   async getWeather(req: Request<WeatherParams>, res: Response) {
     const { city } = req.params;
 
-    const weatherData = await weatherService.getWeather(city);
+    const weatherData = await this.weatherService.getWeather(city);
     res.status(200).json({
       city,
       temperature: weatherData.temperature,
@@ -16,5 +22,3 @@ class WeatherController {
     });
   }
 }
-
-export default new WeatherController();

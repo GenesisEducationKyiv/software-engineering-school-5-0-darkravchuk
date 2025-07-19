@@ -5,6 +5,7 @@ export interface ISubscriptionRepository {
     findByConfirmationToken(token: string): Promise<Subscription | null>;
     findByUnsubscribeToken(token: string): Promise<Subscription | null>;
     findAllByFrequency(frequency: 'hourly' | 'daily'): Promise<Subscription[]>;
+    findOne(filter: { email: string; city: string; frequency: 'hourly' | 'daily'; confirmed: boolean }): Promise<Subscription | null>;
     create(data: SubscriptionCreateData): Promise<Subscription>;
     update(subscription: Subscription): Promise<Subscription>;
     delete(subscription: Subscription): Promise<void>;

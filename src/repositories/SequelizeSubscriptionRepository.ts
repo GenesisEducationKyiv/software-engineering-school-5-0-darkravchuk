@@ -1,5 +1,5 @@
-import { ISubscriptionRepository, SubscriptionCreateData } from '../types/ISubscriptionRepository';
 import Subscription from '../models/Subscription';
+import { ISubscriptionRepository, SubscriptionCreateData } from '../types/ISubscriptionRepository';
 
 class SequelizeSubscriptionRepository implements ISubscriptionRepository {
   async findByEmail(email: string): Promise<Subscription | null> {
@@ -16,6 +16,10 @@ class SequelizeSubscriptionRepository implements ISubscriptionRepository {
 
   async findAllByFrequency(frequency: 'hourly' | 'daily'): Promise<Subscription[]> {
     return Subscription.findAll({ where: { confirmed: true, frequency } });
+  }
+
+  async findOne(filter: { email: string; city: string; frequency: 'hourly' | 'daily'; confirmed: boolean }): Promise<Subscription | null> {
+    return Subscription.findOne({ where: filter });
   }
 
   async create(data: SubscriptionCreateData): Promise<Subscription> {
