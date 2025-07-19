@@ -1,22 +1,37 @@
-import { Observer, Subject } from '../types';
-import weatherService from '../services/weatherService';
+import { Observer } from '../types';
 import EmailObserver from './emailObserver';
-import Subscription from '../models/Subscription';
+import { IWeatherService } from '../services/WeatherService.interface';
+import { IEmailSender } from '../types/IEmailSender';
+import { ISubscriptionSubject } from '../types/ISubscriptionSubject';
+import { ISubscriptionRepository } from '../types/ISubscriptionRepository';
 
-class SubscriptionSubject implements Subject {
+class SubscriptionSubject implements ISubscriptionSubject {
+  private weatherService: IWeatherService;
+  private readonly emailSender: IEmailSender;
+  private subscriptionRepository: ISubscriptionRepository;
   private observers: { observer: Observer; city: string; frequency: 'hourly' | 'daily' }[] = [];
 
-  constructor() {
+  constructor(
+    weatherService: IWeatherService,
+    emailSender: IEmailSender,
+    subscriptionRepository: ISubscriptionRepository
+  ) {
+    this.weatherService = weatherService;
+    this.emailSender = emailSender;
+    this.subscriptionRepository = subscriptionRepository;
     this.syncWithDB().catch(err => {
+      console.error('Failed to sync observers on initialization:', err);
     });
   }
 
-  private async syncWithDB(): Promise<void> {
+  async syncWithDB(): Promise<void> {
     try {
-      const subscriptions = await Subscription.findAll({ where: { confirmed: true } });
+      const subscriptions = await this.subscriptionRepository.findAllByFrequency('hourly');
+      const dailySubscriptions = await this.subscriptionRepository.findAllByFrequency('daily');
+      const allSubscriptions = [...subscriptions, ...dailySubscriptions];
 
-      this.observers = subscriptions.map(subscription => ({
-        observer: new EmailObserver(subscription.email, subscription.unsubscribeToken),
+      this.observers = allSubscriptions.map(subscription => ({
+        observer: new EmailObserver(subscription.email, subscription.unsubscribeToken, this.emailSender),
         city: subscription.city,
         frequency: subscription.frequency,
       }));
@@ -26,8 +41,11 @@ class SubscriptionSubject implements Subject {
   }
 
   async registerObserver(observer: Observer, city: string, frequency: 'hourly' | 'daily') {
-    const subscription = await Subscription.findOne({
-      where: { email: (observer as EmailObserver).getEmail(), city, frequency, confirmed: true }
+    const subscription = await this.subscriptionRepository.findOne({
+      email: (observer as EmailObserver).getEmail(),
+      city,
+      frequency,
+      confirmed: true
     });
 
     if (!subscription) {
@@ -37,10 +55,11 @@ class SubscriptionSubject implements Subject {
     await this.syncWithDB();
 
     const exists = this.observers.some(
-      obs => obs.observer instanceof EmailObserver &&
-                (obs.observer as EmailObserver).getEmail() === (observer as EmailObserver).getEmail() &&
-                obs.city === city &&
-                obs.frequency === frequency
+      obs =>
+        obs.observer instanceof EmailObserver &&
+            (obs.observer as EmailObserver).getEmail() === (observer as EmailObserver).getEmail() &&
+            obs.city === city &&
+            obs.frequency === frequency
     );
 
     if (!exists) {
@@ -53,7 +72,6 @@ class SubscriptionSubject implements Subject {
 
     this.observers = this.observers.filter(obs => {
       if (!(obs.observer instanceof EmailObserver) || !(observer instanceof EmailObserver)) {
-
         return obs.observer !== observer || obs.city !== city;
       }
 
@@ -62,17 +80,13 @@ class SubscriptionSubject implements Subject {
   }
 
   async notifyObservers(city: string, frequency: 'hourly' | 'daily') {
-
-    await this.syncWithDB();
-
     const observersToNotify = this.observers.filter(obs => obs.city === city && obs.frequency === frequency);
 
     for (const obs of observersToNotify) {
-      const weather = await weatherService.getWeather(city);
-
+      const weather = await this.weatherService.getWeather(city);
       await obs.observer.update(city, weather);
     }
   }
 }
 
-export default new SubscriptionSubject();
+export default SubscriptionSubject;

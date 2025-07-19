@@ -1,30 +1,24 @@
 import { Request, Response } from 'express';
-import weatherService from '../services/weatherService';
-import {WeatherParams, WeatherResponse, ErrorResponse, WeatherData, weatherParamsSchema} from '../types/weather';
+import { WeatherParams } from '../types/weather';
+import {IWeatherService} from '../services/WeatherService.interface';
 
-class WeatherController {
-  async getWeather(req: Request<WeatherParams>, res: Response<WeatherResponse | ErrorResponse>) {
-    const { error } = weatherParamsSchema.validate(req.params, { abortEarly: false });
+export class WeatherController {
+  private weatherService: IWeatherService;
 
-    if (error) {
-      const errorMessage = error.details.map((detail) => detail.message).join(', ');
+  constructor(weatherService: IWeatherService) {
+    this.weatherService = weatherService;
+  }
 
-      return res.status(400).json({ error: errorMessage });
-    }
-
+  async getWeather(req: Request<WeatherParams>, res: Response) {
     const { city } = req.params;
 
-    try {
-      const weather: WeatherData = await weatherService.getWeather(city);
-
-      return res.status(200).json({ city, weather });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Failed to get weather data:', errorMessage);
-
-      return res.status(500).json({ error: 'Internal error' });
-    }
+    const weatherData = await this.weatherService.getWeather(city);
+    res.status(200).json({
+      city,
+      temperature: weatherData.temperature,
+      description: weatherData.description,
+      humidity: weatherData.humidity,
+      pressure: weatherData.pressure
+    });
   }
 }
-
-export default new WeatherController();

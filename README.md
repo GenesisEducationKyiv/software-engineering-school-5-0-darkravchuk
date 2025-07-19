@@ -30,7 +30,8 @@ DB_NAME=weather_db
 WEATHER_API_KEY=your_weather_api_key
 SENDGRID_API_KEY=your_sendgrid_api_key
 EMAIL=your_email@your_email
-DOMAIN=http://localhost:3000
+PORT=3000
+DOMAIN=http://localhost
 ```
 
 ## Endpoints

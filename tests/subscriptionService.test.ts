@@ -1,11 +1,11 @@
 import SubscriptionService from '../src/services/subscriptionService';
 import Subscription from '../src/models/Subscription';
-import * as sendGrid from '../src/utils/sendGrid';
+import * as sendGrid from '../src/utils/EmailSender';
 import SubscriptionSubject from '../src/utils/subscriptionSubject';
 import EmailObserver from '../src/utils/emailObserver';
 
 jest.mock('../src/models/Subscription');
-jest.mock('../src/utils/sendGrid');
+jest.mock('../src/utils/EmailSender');
 jest.mock('../src/utils/subscriptionSubject');
 jest.mock('../src/utils/emailObserver');
 

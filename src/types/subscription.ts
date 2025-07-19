@@ -7,7 +7,7 @@ export interface SubscriptionRequest {
 }
 
 export interface TokenRequest {
-    token: string;
+    token: string; // Визначено як об'єкт з полем token
 }
 
 export interface SuccessResponse {
