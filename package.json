@@ -9,7 +9,8 @@
     "migrate": "sequelize db:migrate",
     "migrate:undo": "sequelize db:migrate:undo",
     "test": "jest",
-    "test:integration": "jest --config=jest.integration.config.js"
+    "test:integration": "jest --config=jest.integration.config.js",
+    "test:migrate": "sequelize db:migrate --config src/config/database-migrations.js --env test"
   },
   "keywords": [],
   "author": "",

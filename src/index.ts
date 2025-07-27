@@ -28,13 +28,19 @@ async function startServer() {
   try {
     await sequelize.sync({ force: false });
     await scheduleWeatherUpdates(subscriptionService);
-    app.listen(PORT, () => {
-      console.log(`Server is running on ${DOMAIN}:${PORT}`);
-    });
+    if (process.env.NODE_ENV !== 'test') {
+      const PORT = process.env.PORT || 3000;
+      app.listen(PORT, () => {
+        console.log(`Server is running on http://localhost:${PORT}`);
+      });
+    }
   } catch (error) {
     console.error('Failed to start server:', (error as Error).message);
   }
 }
 
-startServer();
+startServer().catch(err => {
+  console.error('Failed to start server:', err);
+});
+
 export default app;

@@ -1,6 +1,26 @@
-version: '3.8'
 
 services:
+  db:
+    image: postgres:14
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=weather_db
+    env_file:
+      - .env.test
+    volumes:
+      - test-db-data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d weather_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - test-network
+
   app:
     build:
       context: .
@@ -13,30 +33,28 @@ services:
       - DB_PORT=5432
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=test_${DB_NAME}
+      - DB_NAME=weather_db
+    env_file:
+      - .env.test
     depends_on:
       db:
         condition: service_healthy
-    command: sh -c "npm run migrate && npm run test:integration"
+    command: sh -c "npm run test:migrate && npm run test:integration"
     networks:
       - test-network
 
-  db:
+  db-check:
     image: postgres:14
     environment:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_DB=test_${DB_NAME}
-    volumes:
-      - test-db-data:/var/lib/postgresql/data
-    ports:
-      - "5434:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d test_$${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
+      - PGPASSWORD=${DB_PASSWORD}
+    env_file:
+      - .env.test
+    depends_on:
+      app:
+        condition: service_completed_successfully
+    command: psql -h db -U ${DB_USER} -d postgres -c "SELECT datname FROM pg_database;"
     networks:
       - test-network
 

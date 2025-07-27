@@ -4,6 +4,7 @@ import { IWeatherService } from '../services/WeatherService.interface';
 import { IEmailSender } from '../types/IEmailSender';
 import { ISubscriptionSubject } from '../types/ISubscriptionSubject';
 import { ISubscriptionRepository } from '../types/ISubscriptionRepository';
+import sequelize from "../config/database";
 
 class SubscriptionSubject implements ISubscriptionSubject {
   private weatherService: IWeatherService;
@@ -26,8 +27,14 @@ class SubscriptionSubject implements ISubscriptionSubject {
 
   async syncWithDB(): Promise<void> {
     try {
+      // Додаємо дебагування доступних таблиць
+      const tables = await sequelize.getQueryInterface().showAllTables();
+      console.log('Available tables:', tables);
+
       const subscriptions = await this.subscriptionRepository.findAllByFrequency('hourly');
       const dailySubscriptions = await this.subscriptionRepository.findAllByFrequency('daily');
+      console.log('Hourly subscriptions:', subscriptions);
+      console.log('Daily subscriptions:', dailySubscriptions);
       const allSubscriptions = [...subscriptions, ...dailySubscriptions];
 
       this.observers = allSubscriptions.map(subscription => ({
@@ -36,6 +43,7 @@ class SubscriptionSubject implements ISubscriptionSubject {
         frequency: subscription.frequency,
       }));
     } catch (error) {
+      console.error('Error in syncWithDB:', error);
       throw error;
     }
   }
