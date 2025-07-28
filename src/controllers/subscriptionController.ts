@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
-import { SubscriptionRequest, TokenRequest, SuccessResponse } from '../types/subscription';
 import {ISubscriptionService} from '../services/SubscriptionService.interface';
+import {SubscriptionRequest} from "../types/subscription/SubscriptionRequest";
+import {SuccessResponse} from "../types/subscription/SuccessResponse";
+import {TokenRequest} from "../types/subscription/TokenRequest";
 
 export class SubscriptionController {
   private subscriptionService: ISubscriptionService;

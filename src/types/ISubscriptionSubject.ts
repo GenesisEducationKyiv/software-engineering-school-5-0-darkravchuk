@@ -1,4 +1,4 @@
-import {Observer} from '../types';
+import {Observer} from './Observer';
 
 export interface ISubscriptionSubject {
     registerObserver(observer: Observer, city: string, frequency: 'hourly' | 'daily'): Promise<void>;

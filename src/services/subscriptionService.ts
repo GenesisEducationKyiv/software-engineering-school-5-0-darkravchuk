@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { v4 } from 'uuid';
 import { ISubscriptionRepository, SubscriptionCreateData } from '../types/ISubscriptionRepository';
 import { IEmailSender } from '../types/IEmailSender';
 import { ISubscriptionSubject } from '../types/ISubscriptionSubject';
@@ -21,13 +21,12 @@ class SubscriptionService implements ISubscriptionService {
 
   async subscribe(email: string, city: string, frequency: 'hourly' | 'daily'): Promise<{
     message: string;
-    confirmationToken: string;
   }> {
     const existing = await this.repository.findByEmail(email);
     if (existing) throw new ConflictError('Email already subscribed');
 
-    const confirmationToken = uuidv4();
-    const unsubscribeToken = uuidv4();
+    const confirmationToken = v4();
+    const unsubscribeToken = v4();
     const data: SubscriptionCreateData = {
       email,
       city,
@@ -40,7 +39,7 @@ class SubscriptionService implements ISubscriptionService {
 
     await this.emailSender.sendConfirmationEmail(email, confirmationToken);
 
-    return { message: 'Subscription created. Check your email for confirmation.', confirmationToken };
+    return { message: 'Subscription created. Check your email for confirmation.' };
   }
 
   async confirmSubscription(confirmationToken: string): Promise<{

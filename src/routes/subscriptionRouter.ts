@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import { validateSubscription, validateToken } from '../middleware/validation';
 import { handleError } from '../middleware/errorHandler';
-import { SubscriptionRequest, TokenRequest, SuccessResponse } from '../types/subscription';
 import {SubscriptionController} from '../controllers/subscriptionController';
+import {SubscriptionRequest} from "../types/subscription/SubscriptionRequest";
+import {SuccessResponse} from "../types/subscription/SuccessResponse";
+import {TokenRequest} from "../types/subscription/TokenRequest";
 
 const router = Router();
 

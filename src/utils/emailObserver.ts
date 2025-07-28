@@ -1,4 +1,4 @@
-import { Observer } from '../types';
+import { Observer } from '../types/Observer';
 import { IEmailSender } from '../types/IEmailSender';
 
 export default class EmailObserver implements Observer {

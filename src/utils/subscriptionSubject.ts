@@ -1,4 +1,4 @@
-import { Observer } from '../types';
+import { Observer } from '../types/Observer';
 import EmailObserver from './emailObserver';
 import { IWeatherService } from '../services/WeatherService.interface';
 import { IEmailSender } from '../types/IEmailSender';
@@ -20,22 +20,11 @@ class SubscriptionSubject implements ISubscriptionSubject {
     this.weatherService = weatherService;
     this.emailSender = emailSender;
     this.subscriptionRepository = subscriptionRepository;
-    this.syncWithDB().catch(err => {
-      console.error('Failed to sync observers on initialization:', err);
-    });
   }
 
   async syncWithDB(): Promise<void> {
     try {
-      // Додаємо дебагування доступних таблиць
-      const tables = await sequelize.getQueryInterface().showAllTables();
-      console.log('Available tables:', tables);
-
-      const subscriptions = await this.subscriptionRepository.findAllByFrequency('hourly');
-      const dailySubscriptions = await this.subscriptionRepository.findAllByFrequency('daily');
-      console.log('Hourly subscriptions:', subscriptions);
-      console.log('Daily subscriptions:', dailySubscriptions);
-      const allSubscriptions = [...subscriptions, ...dailySubscriptions];
+      const allSubscriptions = await this.subscriptionRepository.findAll();
 
       this.observers = allSubscriptions.map(subscription => ({
         observer: new EmailObserver(subscription.email, subscription.unsubscribeToken, this.emailSender),

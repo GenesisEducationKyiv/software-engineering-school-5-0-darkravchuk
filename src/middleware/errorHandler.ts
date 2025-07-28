@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction, RequestHandler } from 'express';
 import { HttpError } from '../errors/httpError';
-import { ErrorResponse } from '../types/subscription';
+import {ErrorResponse} from "../types/subscription/ErrorResponse";
 
 export const handleError = <P = any, ResBody = any, ReqBody = any, ReqQuery = qs.ParsedQs>(
   controllerFunction: (req: Request<P, any, ReqBody, ReqQuery>, res: Response<ResBody>) => Promise<void>

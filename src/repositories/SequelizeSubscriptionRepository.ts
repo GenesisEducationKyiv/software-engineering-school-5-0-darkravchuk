@@ -33,6 +33,10 @@ class SequelizeSubscriptionRepository implements ISubscriptionRepository {
   async delete(subscription: Subscription): Promise<void> {
     await subscription.destroy();
   }
+
+  async findAll(): Promise<Subscription[]> {
+    return Subscription.findAll();
+  }
 }
 
 export default SequelizeSubscriptionRepository;

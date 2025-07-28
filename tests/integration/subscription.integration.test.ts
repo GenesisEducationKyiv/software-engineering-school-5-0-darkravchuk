@@ -6,8 +6,13 @@ import { WeatherApiComProvider } from '../../src/utils/weatherProviders/WeatherA
 import { WeatherDataDTO } from '../../src/services/WeatherDataDTO';
 import { SendGridProvider } from '../../src/utils/emailProviders/SendGridProvider';
 
+const token = 'mocked-uuid'
+
 jest.mock('../../src/utils/weatherProviders/WeatherApiComProvider');
 jest.mock('../../src/utils/emailProviders/SendGridProvider');
+jest.mock('uuid', () => ({
+    v4: jest.fn().mockImplementation(() => token),
+}))
 
 describe('Subscription Controller Integration', () => {
     beforeAll(async () => {
@@ -17,8 +22,6 @@ describe('Subscription Controller Integration', () => {
         );
         (SendGridProvider.prototype.configure as jest.Mock).mockImplementation(() => {});
         (SendGridProvider.prototype.send as jest.Mock).mockResolvedValue({});
-
-        await sequelize.sync({ force: true });
     });
 
     afterEach(async () => {
@@ -34,7 +37,7 @@ describe('Subscription Controller Integration', () => {
             const response = await request(app)
                 .post('/api/subscription/subscribe')
                 .send({
-                    email: 'test@example.com',
+                    email: 'hexh86260@gmail.com',
                     city: 'London',
                     frequency: 'daily',
                 });
@@ -56,21 +59,17 @@ describe('Subscription Controller Integration', () => {
 
     describe('GET /api/subscription/confirm/:token', () => {
         it('should return 200 and a success response for a valid token', async () => {
-            const subscribeResponse = await request(app)
-                .post('/api/subscription/subscribe')
-                .send({
-                    email: 'test1@example.com',
-                    city: 'London',
-                    frequency: 'daily',
-                });
-            console.log('Subscribe response:', subscribeResponse.body);
-            const token = subscribeResponse.body.confirmationToken;
-
-            const subscription = await Subscription.findOne({ where: { email: 'test1@example.com' } });
-            console.log('Subscription in DB:', subscription);
+            // const subscribeResponse = await request(app)
+            //     .post('/api/subscription/subscribe')
+            //     .send({
+            //         email: 'test1@example.com',
+            //         city: 'London',
+            //         frequency: 'daily',
+            //     });
+            //
+            // const subscription = await Subscription.findOne({ where: { email: 'test1@example.com' } });
 
             const response = await request(app).get(`/api/subscription/confirm/${token}`);
-            console.log('Confirm response:', response.body);
             expect(response.status).toBe(200);
             expect(response.body).toHaveProperty('message', 'Subscription confirmed successfully');
         });

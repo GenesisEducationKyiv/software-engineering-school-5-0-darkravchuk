@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
-import {
-  ErrorResponse,
-  SubscriptionRequest,
-  subscriptionSchema,
-  TokenRequest,
-  tokenSchema,
-} from '../types/subscription';
-import {WeatherParams, weatherParamsSchema} from '../types/weather';
+import {SubscriptionRequest} from "../types/subscription/SubscriptionRequest";
+import {subscriptionSchema} from "../schemas/subscriptionSchema";
+import {ErrorResponse} from "../types/subscription/ErrorResponse";
+import {TokenRequest} from "../types/subscription/TokenRequest";
+import {tokenSchema} from "../schemas/tokenSchema";
+import {weatherSchema} from "../schemas/weatherSchema";
+import {WeatherParams} from "../types/weather/WeatherParams";
+
 
 export const validateSubscription = (
   req: Request<{}, {}, SubscriptionRequest>,
@@ -43,7 +43,7 @@ export const validateToken = (
 };
 
 export const validateWeatherParams = (req: Request<WeatherParams>, res: Response, next: NextFunction) => {
-  const { error } = weatherParamsSchema.validate(req.params, { abortEarly: false });
+  const { error } = weatherSchema.validate(req.params, { abortEarly: false });
 
   if (error) {
     const errorMessage = error.details.map((detail) => detail.message).join(', ');

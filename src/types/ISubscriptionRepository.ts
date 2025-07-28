@@ -1,4 +1,4 @@
-import Subscription from '../models/Subscription';
+import { Subscription } from "./Subscription";
 
 export interface ISubscriptionRepository {
     findByEmail(email: string): Promise<Subscription | null>;
@@ -9,6 +9,7 @@ export interface ISubscriptionRepository {
     create(data: SubscriptionCreateData): Promise<Subscription>;
     update(subscription: Subscription): Promise<Subscription>;
     delete(subscription: Subscription): Promise<void>;
+    findAll(): Promise<Subscription[]>;
 }
 
 export interface SubscriptionCreateData {
