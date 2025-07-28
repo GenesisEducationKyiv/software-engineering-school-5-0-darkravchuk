@@ -7,80 +7,80 @@ import { EmailSender } from '../../src/utils/EmailSender';
 import { WeatherService } from '../../src/services/weatherService';
 import { SubscriptionController } from '../../src/controllers/subscriptionController';
 import subscriptionRouter from '../../src/routes/subscriptionRouter';
-import SubscriptionService from "../../src/services/subscriptionService";
+import SubscriptionService from '../../src/services/subscriptionService';
 
 const mockWeatherProvider: IWeatherProvider = {
-    configure: () => {},
-    getWeather: async (city: string) => ({
-        city,
-        temperature: 20,
-        description: 'Sunny',
-        humidity: 60,
-        pressure: 1013,
-        windSpeed: 5,
-    }),
+  configure: () => {},
+  getWeather: async (city: string) => ({
+    city,
+    temperature: 20,
+    description: 'Sunny',
+    humidity: 60,
+    pressure: 1013,
+    windSpeed: 5,
+  }),
 };
 
 const mockEmailProvider: IEmailProvider = {
-    configure: () => {},
-    send: async () => {},
+  configure: () => {},
+  send: async () => {},
 };
 
 class TestSubscriptionRepository implements ISubscriptionRepository {
-    private subscriptions: Subscription[] = [];
-    private idCounter = 1;
+  private subscriptions: Subscription[] = [];
+  private idCounter = 1;
 
-    async findByEmail(email: string): Promise<Subscription | null> {
-        return this.subscriptions.find(s => s.email === email) || null;
-    }
+  async findByEmail(email: string): Promise<Subscription | null> {
+    return this.subscriptions.find(s => s.email === email) || null;
+  }
 
-    async findByConfirmationToken(token: string): Promise<Subscription | null> {
-        return this.subscriptions.find(s => s.confirmationToken === token) || null;
-    }
+  async findByConfirmationToken(token: string): Promise<Subscription | null> {
+    return this.subscriptions.find(s => s.confirmationToken === token) || null;
+  }
 
-    async findByUnsubscribeToken(token: string): Promise<Subscription | null> {
-        return this.subscriptions.find(s => s.unsubscribeToken === token) || null;
-    }
+  async findByUnsubscribeToken(token: string): Promise<Subscription | null> {
+    return this.subscriptions.find(s => s.unsubscribeToken === token) || null;
+  }
 
-    async findAllByFrequency(frequency: 'hourly' | 'daily'): Promise<Subscription[]> {
-        return this.subscriptions.filter(s => s.frequency === frequency);
-    }
+  async findAllByFrequency(frequency: 'hourly' | 'daily'): Promise<Subscription[]> {
+    return this.subscriptions.filter(s => s.frequency === frequency);
+  }
 
-    async findOne(filter: { email: string; city: string; frequency: 'hourly' | 'daily'; confirmed: boolean }): Promise<Subscription | null> {
-        return this.subscriptions.find(s =>
-            s.email === filter.email &&
+  async findOne(filter: { email: string; city: string; frequency: 'hourly' | 'daily'; confirmed: boolean }): Promise<Subscription | null> {
+    return this.subscriptions.find(s =>
+      s.email === filter.email &&
             s.city === filter.city &&
             s.frequency === filter.frequency &&
             s.confirmed === filter.confirmed
-        ) || null;
-    }
+    ) || null;
+  }
 
-    async create(data: Subscription): Promise<Subscription> {
-        const subscription = { ...data, id: this.idCounter++ };
-        this.subscriptions.push(subscription);
-        return subscription;
-    }
+  async create(data: Subscription): Promise<Subscription> {
+    const subscription = { ...data, id: this.idCounter++ };
+    this.subscriptions.push(subscription);
+    return subscription;
+  }
 
-    async update(subscription: Subscription): Promise<Subscription> {
-        const index = this.subscriptions.findIndex(s => s.id === subscription.id);
-        if (index === -1) throw new Error('Subscription not found');
-        this.subscriptions[index] = subscription;
-        return subscription;
-    }
+  async update(subscription: Subscription): Promise<Subscription> {
+    const index = this.subscriptions.findIndex(s => s.id === subscription.id);
+    if (index === -1) throw new Error('Subscription not found');
+    this.subscriptions[index] = subscription;
+    return subscription;
+  }
 
-    async delete(subscription: Subscription): Promise<void> {
-        const index = this.subscriptions.findIndex(s => s.id === subscription.id);
-        if (index !== -1) this.subscriptions.splice(index, 1);
-    }
+  async delete(subscription: Subscription): Promise<void> {
+    const index = this.subscriptions.findIndex(s => s.id === subscription.id);
+    if (index !== -1) this.subscriptions.splice(index, 1);
+  }
 
-    async findAll(): Promise<Subscription[]> {
-        return this.subscriptions;
-    }
+  async findAll(): Promise<Subscription[]> {
+    return this.subscriptions;
+  }
 
-    async reset() {
-        this.subscriptions = [];
-        this.idCounter = 1;
-    }
+  async reset() {
+    this.subscriptions = [];
+    this.idCounter = 1;
+  }
 }
 
 const app = express();
@@ -91,9 +91,9 @@ const subscriptionRepository = new TestSubscriptionRepository();
 const emailSender = new EmailSender(mockEmailProvider);
 const weatherService = new WeatherService(mockWeatherProvider);
 const subscriptionService = new SubscriptionService(subscriptionRepository, emailSender, {
-    registerObserver: async () => {},
-    removeObserver: async () => {},
-    notifyObservers: async () => {},
+  registerObserver: async () => {},
+  removeObserver: async () => {},
+  notifyObservers: async () => {},
 });
 const subscriptionController = new SubscriptionController(subscriptionService);
 

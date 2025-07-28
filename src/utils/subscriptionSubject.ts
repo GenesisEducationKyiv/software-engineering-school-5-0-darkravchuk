@@ -4,7 +4,7 @@ import { IWeatherService } from '../services/WeatherService.interface';
 import { IEmailSender } from '../types/IEmailSender';
 import { ISubscriptionSubject } from '../types/ISubscriptionSubject';
 import { ISubscriptionRepository } from '../types/ISubscriptionRepository';
-import sequelize from "../config/database";
+import sequelize from '../config/database';
 
 class SubscriptionSubject implements ISubscriptionSubject {
   private weatherService: IWeatherService;

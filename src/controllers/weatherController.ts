@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import {IWeatherService} from '../services/WeatherService.interface';
-import {BadRequestError} from "../errors/httpError";
-import {WeatherParams} from "../types/weather/WeatherParams";
+import {BadRequestError} from '../errors/httpError';
+import {WeatherParams} from '../types/weather/WeatherParams';
 
 export class WeatherController {
   private weatherService: IWeatherService;

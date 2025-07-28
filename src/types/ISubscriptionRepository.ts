@@ -1,4 +1,4 @@
-import { Subscription } from "./Subscription";
+import { Subscription } from './Subscription';
 
 export interface ISubscriptionRepository {
     findByEmail(email: string): Promise<Subscription | null>;

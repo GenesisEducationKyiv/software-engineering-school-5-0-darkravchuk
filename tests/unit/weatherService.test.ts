@@ -1,7 +1,7 @@
 import { NotFoundError } from '../../src/errors/httpError';
-import {WeatherService} from "../../src/services/weatherService";
-import {IWeatherProvider} from "../../src/types/IWeatherProvider";
-import {WeatherDataDTO} from "../../src/services/WeatherDataDTO";
+import {WeatherService} from '../../src/services/weatherService';
+import {IWeatherProvider} from '../../src/types/IWeatherProvider';
+import {WeatherDataDTO} from '../../src/services/WeatherDataDTO';
 
 jest.mock('../../src/types/IWeatherProvider');
 
@@ -50,10 +50,10 @@ describe('WeatherService Unit Tests', () => {
       // Arrange
       const city = 'Kyiv';
       const mockWeatherData: WeatherDataDTO = new WeatherDataDTO(
-          20,
-          'Sunny',
-          60,
-          1013
+        20,
+        'Sunny',
+        60,
+        1013
       );
       mockWeatherProvider.getWeather.mockResolvedValue(mockWeatherData);
 
@@ -80,7 +80,7 @@ describe('WeatherService Unit Tests', () => {
 
       // Act & Assert
       await expect(weatherService.getWeather(city)).rejects.toThrow(
-          new NotFoundError('City not found')
+        new NotFoundError('City not found')
       );
       expect(mockWeatherProvider.getWeather).toHaveBeenCalledWith(city);
     });

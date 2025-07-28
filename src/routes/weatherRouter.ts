@@ -2,8 +2,8 @@ import { Router } from 'express';
 import { validateWeatherParams } from '../middleware/validation';
 import { handleError } from '../middleware/errorHandler';
 import {WeatherController} from '../controllers/weatherController';
-import {WeatherParams} from "../types/weather/WeatherParams";
-import {WeatherResponse} from "../types/weather/WeatherResponse";
+import {WeatherParams} from '../types/weather/WeatherParams';
+import {WeatherResponse} from '../types/weather/WeatherResponse';
 
 const router = Router();
 

@@ -1,5 +1,5 @@
-import Joi from "joi";
-import {WeatherParams} from "../types/weather/WeatherParams";
+import Joi from 'joi';
+import {WeatherParams} from '../types/weather/WeatherParams';
 
 export const weatherSchema = Joi.object<WeatherParams>({
   city: Joi.string().trim().required().messages({

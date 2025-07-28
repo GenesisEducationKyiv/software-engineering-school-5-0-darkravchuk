@@ -4,8 +4,8 @@ import { IEmailSender } from '../../src/types/IEmailSender';
 import { ISubscriptionSubject } from '../../src/types/ISubscriptionSubject';
 import EmailObserver from '../../src/utils/emailObserver';
 import { NotFoundError, ConflictError, WeatherUpdateError } from '../../src/errors/httpError';
-import {MockSubscriptionRepository} from "../mocks/MockSubscriptionRepository";
-import {SubscriptionCreateData} from "../../src/types/ISubscriptionRepository";
+import {MockSubscriptionRepository} from '../mocks/MockSubscriptionRepository';
+import {SubscriptionCreateData} from '../../src/types/ISubscriptionRepository';
 
 jest.mock('uuid', () => ({
   v4: jest.fn(),
@@ -89,7 +89,7 @@ describe('SubscriptionService Unit Tests', () => {
 
       // Act & Assert
       await expect(subscriptionService.subscribe(email, 'Kyiv', 'daily')).rejects.toThrow(
-          new ConflictError('Email already subscribed')
+        new ConflictError('Email already subscribed')
       );
       expect(mockEmailSender.sendConfirmationEmail).not.toHaveBeenCalled();
     });
@@ -117,9 +117,9 @@ describe('SubscriptionService Unit Tests', () => {
       expect(updatedSubscription?.confirmed).toBe(true);
       expect(EmailObserver).toHaveBeenCalledWith('test@example.com', 'unsub-token', mockEmailSender);
       expect(mockSubscriptionSubject.registerObserver).toHaveBeenCalledWith(
-          mockEmailObserver,
-          subscriptionData.city,
-          subscriptionData.frequency
+        mockEmailObserver,
+        subscriptionData.city,
+        subscriptionData.frequency
       );
       expect(result).toEqual({ message: 'Subscription confirmed successfully' });
     });
@@ -130,7 +130,7 @@ describe('SubscriptionService Unit Tests', () => {
 
       // Act & Assert
       await expect(subscriptionService.confirmSubscription(confirmationToken)).rejects.toThrow(
-          new NotFoundError('Token not found')
+        new NotFoundError('Token not found')
       );
       expect(mockSubscriptionSubject.registerObserver).not.toHaveBeenCalled();
     });
@@ -150,7 +150,7 @@ describe('SubscriptionService Unit Tests', () => {
 
       // Act & Assert
       await expect(subscriptionService.confirmSubscription(confirmationToken)).rejects.toThrow(
-          new ConflictError('Already confirmed')
+        new ConflictError('Already confirmed')
       );
       expect(mockSubscriptionSubject.registerObserver).not.toHaveBeenCalled();
     });
@@ -187,7 +187,7 @@ describe('SubscriptionService Unit Tests', () => {
 
       // Act & Assert
       await expect(subscriptionService.unsubscribe(unsubscribeToken)).rejects.toThrow(
-          new NotFoundError('Token not found')
+        new NotFoundError('Token not found')
       );
       expect(mockSubscriptionSubject.removeObserver).not.toHaveBeenCalled();
       expect(mockEmailSender.sendUnsubscribeEmail).not.toHaveBeenCalled();
@@ -265,10 +265,10 @@ describe('SubscriptionService Unit Tests', () => {
 
       // Act & Assert
       await expect(subscriptionService.sendWeatherUpdates(frequency)).rejects.toThrow(
-          new WeatherUpdateError(`Failed to send weather updates for ${frequency}`, {
-            error: error.message,
-            stack: error.stack,
-          })
+        new WeatherUpdateError(`Failed to send weather updates for ${frequency}`, {
+          error: error.message,
+          stack: error.stack,
+        })
       );
     });
   });

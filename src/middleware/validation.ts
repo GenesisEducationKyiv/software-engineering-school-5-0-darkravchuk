@@ -1,11 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
-import {SubscriptionRequest} from "../types/subscription/SubscriptionRequest";
-import {subscriptionSchema} from "../schemas/subscriptionSchema";
-import {ErrorResponse} from "../types/subscription/ErrorResponse";
-import {TokenRequest} from "../types/subscription/TokenRequest";
-import {tokenSchema} from "../schemas/tokenSchema";
-import {weatherSchema} from "../schemas/weatherSchema";
-import {WeatherParams} from "../types/weather/WeatherParams";
+import {SubscriptionRequest} from '../types/subscription/SubscriptionRequest';
+import {subscriptionSchema} from '../schemas/subscriptionSchema';
+import {ErrorResponse} from '../types/subscription/ErrorResponse';
+import {TokenRequest} from '../types/subscription/TokenRequest';
+import {tokenSchema} from '../schemas/tokenSchema';
+import {weatherSchema} from '../schemas/weatherSchema';
+import {WeatherParams} from '../types/weather/WeatherParams';
 
 
 export const validateSubscription = (

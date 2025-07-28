@@ -1,4 +1,4 @@
-import {WeatherData} from "./WeatherData";
+import {WeatherData} from './WeatherData';
 
 export interface WeatherResponse {
     city: string;
