@@ -3,8 +3,8 @@ import { IWeatherProvider } from '../../types/IWeatherProvider';
 import { WeatherDataDTO } from '../../services/WeatherDataDTO';
 import { HttpError, NotFoundError } from '../../errors/httpError';
 
-export class WeatherApiComProvider implements IWeatherProvider {
-  public readonly name = 'weatherapi.com';
+export class OpenWeatherMapProvider implements IWeatherProvider {
+  public readonly name = 'openweathermap.org';
   private apiKey: string = '';
   private isConfigured: boolean = false;
 
@@ -12,7 +12,7 @@ export class WeatherApiComProvider implements IWeatherProvider {
     this.apiKey = config.apiKey;
     this.isConfigured = !!this.apiKey;
     if (!this.apiKey) {
-      throw new Error('WEATHER_API_KEY is not set for WeatherApiComProvider');
+      throw new Error('OPENWEATHER_API_KEY is not set for OpenWeatherMapProvider');
     }
   }
 
@@ -22,25 +22,27 @@ export class WeatherApiComProvider implements IWeatherProvider {
 
   async getWeather(city: string): Promise<WeatherDataDTO> {
     try {
-      const url = `http://api.weatherapi.com/v1/current.json?key=${this.apiKey}&q=${city}`;
+      const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${this.apiKey}&units=metric`;
       const response = await axios.get(url, { timeout: 10000 });
 
-      if (!response.data || !response.data.current) {
+      if (!response.data || !response.data.main) {
         throw new NotFoundError(`No weather data available for ${city}`);
       }
 
-      const { current } = response.data;
+      const { main, weather } = response.data;
 
       return new WeatherDataDTO(
-        current.temp_c,
-        current.condition.text,
-        current.humidity,
-        current.pressure_mb
+        main.temp,
+        weather[0]?.description || 'Unknown',
+        main.humidity,
+        main.pressure
       );
     } catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 404) {
           throw new NotFoundError(`Weather data for ${city} not found`);
+        } else if (error.response?.status === 401) {
+          throw new HttpError(401, `Invalid API key for ${this.name}`);
         } else {
           throw new HttpError(500, `Failed to fetch weather for ${city}`);
         }
@@ -48,4 +50,4 @@ export class WeatherApiComProvider implements IWeatherProvider {
       throw new HttpError(500, `Unexpected error fetching weather for ${city}`);
     }
   }
-}
+} 

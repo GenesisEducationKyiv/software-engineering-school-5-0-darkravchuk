@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
+import { WeatherParams } from '../types/weather/WeatherParams';
 import {IWeatherService} from '../services/WeatherService.interface';
 import {BadRequestError} from '../errors/httpError';
-import {WeatherParams} from '../types/weather/WeatherParams';
 
 export class WeatherController {
   private weatherService: IWeatherService;
@@ -24,5 +24,25 @@ export class WeatherController {
       humidity: weatherData.humidity,
       pressure: weatherData.pressure
     });
+  }
+
+  async getProviderStatus(req: Request, res: Response) {
+    try {
+      // Access the provider chain to get status
+      const providerChain = (this.weatherService as any).weatherProvider;
+      if (providerChain && typeof providerChain.getProviderStatus === 'function') {
+        const status = providerChain.getProviderStatus();
+        res.status(200).json({ providers: status });
+      } else {
+        res.status(200).json({ 
+          providers: [{ 
+            name: 'weather-provider', 
+            available: true 
+          }] 
+        });
+      }
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get provider status' });
+    }
   }
 }

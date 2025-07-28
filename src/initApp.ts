@@ -3,6 +3,9 @@ import { EmailSender } from './utils/EmailSender';
 import SubscriptionSubject from './utils/subscriptionSubject';
 import { SendGridProvider } from './utils/emailProviders/SendGridProvider';
 import { WeatherApiComProvider } from './utils/weatherProviders/WeatherApiComProvider';
+import { OpenWeatherMapProvider } from './utils/weatherProviders/OpenWeatherMapProvider';
+import { AccuWeatherProvider } from './utils/weatherProviders/AccuWeatherProvider';
+import { WeatherProviderChain } from './utils/weatherProviders/WeatherProviderChain';
 import {WeatherService} from './services/weatherService';
 import {WeatherController} from './controllers/weatherController';
 import SubscriptionService from './services/subscriptionService';
@@ -19,8 +22,13 @@ export interface AppDependencies {
 
 export function initDependencies(): AppDependencies {
   const subscriptionRepository = new SequelizeSubscriptionRepository();
-  const weatherProvider = new WeatherApiComProvider();
-  const weatherService = new WeatherService(weatherProvider);
+  
+  const weatherProviderChain = new WeatherProviderChain();
+  weatherProviderChain.addProvider(new WeatherApiComProvider());
+  weatherProviderChain.addProvider(new OpenWeatherMapProvider());
+  weatherProviderChain.addProvider(new AccuWeatherProvider());
+  
+  const weatherService = new WeatherService(weatherProviderChain);
   const emailProvider = new SendGridProvider();
   const emailSender = new EmailSender(emailProvider);
   const subscriptionSubject = new SubscriptionSubject(weatherService, emailSender, subscriptionRepository);
