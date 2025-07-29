@@ -11,6 +11,6 @@ export async function scheduleWeatherUpdates(subscriptionService: SubscriptionSe
     }, { timezone: 'Europe/Kyiv' });
   };
 
-  scheduleJob('0 * * * *', 'hourly');
+  scheduleJob('* * * * *', 'hourly');
   scheduleJob('0 0 * * *', 'daily');
 }

@@ -1,3 +1,6 @@
+const domain = process.env.DOMAIN || 'http://localhost';
+const port = process.env.PORT || '3001';
+
 export interface EmailContent {
     to: string;
     from: string;
@@ -7,8 +10,9 @@ export interface EmailContent {
 }
 
 export function buildConfirmationEmail(to: string, confirmationToken: string): EmailContent {
-  const domain = process.env.DOMAIN || 'http://localhost';
-  const confirmationLink = `${domain}/api/subscription/confirm/${confirmationToken}`;
+  //const domain = process.env.DOMAIN || 'http://localhost';
+  //const port = process.env.PORT || '3001';
+    const confirmationLink = `${domain}:${port}/api/subscription/confirm/${confirmationToken}`;
   return {
     to,
     from: process.env.EMAIL || '',
@@ -28,8 +32,8 @@ export function buildWeatherUpdateEmail(to: string, city: string, unsubscribeTok
     humidity: number;
     pressure: number;
 }): EmailContent {
-  const domain = process.env.DOMAIN || 'http://localhost';
-  const unsubscribeLink = `${domain}/api/subscription/unsubscribe/${unsubscribeToken}`;
+  //const domain = process.env.DOMAIN || 'http://localhost';
+  const unsubscribeLink = `${domain}:${port}/api/subscription/unsubscribe/${unsubscribeToken}`;
 
   return {
     to,
@@ -50,8 +54,8 @@ export function buildWeatherUpdateEmail(to: string, city: string, unsubscribeTok
 }
 
 export function buildUnsubscribeEmail(to: string, unsubscribeToken: string): EmailContent {
-  const domain = process.env.DOMAIN || 'http://localhost';
-  const unsubscribeLink = `${domain}/api/subscription/unsubscribe/${unsubscribeToken}`;
+  //const domain = process.env.DOMAIN || 'http://localhost';
+  const unsubscribeLink = `${domain}:${port}/api/subscription/unsubscribe/${unsubscribeToken}`;
   return {
     to,
     from: process.env.EMAIL || '',
