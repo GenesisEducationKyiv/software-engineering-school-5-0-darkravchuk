@@ -135,7 +135,7 @@ Errors: ${this.metrics.cacheMetrics.errors}
 
 === Weather Provider Metrics ===
 ${Object.entries(this.metrics.weatherProviderMetrics)
-  .map(([provider, metrics]) => `
+    .map(([provider, metrics]) => `
 ${provider}:
   Requests: ${metrics.requests}
   Success Rate: ${metrics.requests > 0 ? ((metrics.successes / metrics.requests) * 100).toFixed(2) : 0}%

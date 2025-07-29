@@ -12,7 +12,7 @@ export interface EmailContent {
 export function buildConfirmationEmail(to: string, confirmationToken: string): EmailContent {
   //const domain = process.env.DOMAIN || 'http://localhost';
   //const port = process.env.PORT || '3001';
-    const confirmationLink = `${domain}:${port}/api/subscription/confirm/${confirmationToken}`;
+  const confirmationLink = `${domain}:${port}/api/subscription/confirm/${confirmationToken}`;
   return {
     to,
     from: process.env.EMAIL || '',
