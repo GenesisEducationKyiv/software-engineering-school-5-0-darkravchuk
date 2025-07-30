@@ -1,27 +1,27 @@
-import {ISubscriptionRepository, SubscriptionCreateData} from '../../src/types/ISubscriptionRepository';
-import {Subscription} from '../../src/types/Subscription';
+import {ISubscriptionRepository, SubscriptionCreateData} from '../../src/interfaces/ISubscriptionRepository';
+import {ISubscription} from '../../src/interfaces/ISubscription';
 
 export class MockSubscriptionRepository implements ISubscriptionRepository {
-  private subscriptions: Subscription[] = [];
+  private subscriptions: ISubscription[] = [];
   private nextId: number = 1;
 
-  async findByEmail(email: string): Promise<Subscription | null> {
+  async findByEmail(email: string): Promise<ISubscription | null> {
     return this.subscriptions.find((sub) => sub.email === email) || null;
   }
 
-  async findByConfirmationToken(token: string): Promise<Subscription | null> {
+  async findByConfirmationToken(token: string): Promise<ISubscription | null> {
     return this.subscriptions.find((sub) => sub.confirmationToken === token) || null;
   }
 
-  async findByUnsubscribeToken(token: string): Promise<Subscription | null> {
+  async findByUnsubscribeToken(token: string): Promise<ISubscription | null> {
     return this.subscriptions.find((sub) => sub.unsubscribeToken === token) || null;
   }
 
-  async findAllByFrequency(frequency: 'hourly' | 'daily'): Promise<Subscription[]> {
+  async findAllByFrequency(frequency: 'hourly' | 'daily'): Promise<ISubscription[]> {
     return this.subscriptions.filter((sub) => sub.frequency === frequency);
   }
 
-  async findOne(filter: { email: string; city: string; frequency: 'hourly' | 'daily'; confirmed: boolean }): Promise<Subscription | null> {
+  async findOne(filter: { email: string; city: string; frequency: 'hourly' | 'daily'; confirmed: boolean }): Promise<ISubscription | null> {
     return (
       this.subscriptions.find(
         (sub) =>
@@ -33,8 +33,8 @@ export class MockSubscriptionRepository implements ISubscriptionRepository {
     );
   }
 
-  async create(data: SubscriptionCreateData): Promise<Subscription> {
-    const subscription: Subscription = {
+  async create(data: SubscriptionCreateData): Promise<ISubscription> {
+    const subscription: ISubscription = {
       ...data,
       id: this.nextId++,
     };
@@ -42,7 +42,7 @@ export class MockSubscriptionRepository implements ISubscriptionRepository {
     return subscription;
   }
 
-  async update(subscription: Subscription): Promise<Subscription> {
+  async update(subscription: ISubscription): Promise<ISubscription> {
     const index = this.subscriptions.findIndex((sub) => sub.id === subscription.id);
     if (index === -1) {
       throw new Error('Subscription not found');
@@ -51,7 +51,7 @@ export class MockSubscriptionRepository implements ISubscriptionRepository {
     return this.subscriptions[index];
   }
 
-  async delete(subscription: Subscription): Promise<void> {
+  async delete(subscription: ISubscription): Promise<void> {
     const index = this.subscriptions.findIndex((sub) => sub.id === subscription.id);
     if (index === -1) {
       throw new Error('Subscription not found');
@@ -59,7 +59,7 @@ export class MockSubscriptionRepository implements ISubscriptionRepository {
     this.subscriptions.splice(index, 1);
   }
 
-  async findAll(): Promise<Subscription[]> {
+  async findAll(): Promise<ISubscription[]> {
     return [...this.subscriptions];
   }
 }

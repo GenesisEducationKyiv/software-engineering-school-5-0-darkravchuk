@@ -1,7 +1,7 @@
 import Joi from 'joi';
-import {SubscriptionRequest} from '../types/subscription/SubscriptionRequest';
+import {ISubscriptionRequest} from '../interfaces/subscription/ISubscriptionRequest';
 
-export const subscriptionSchema = Joi.object<SubscriptionRequest>({
+export const subscriptionSchema = Joi.object<ISubscriptionRequest>({
   email: Joi.string().email().required().messages({
     'string.email': 'Email must be a valid email address',
     'any.required': 'Email is required',

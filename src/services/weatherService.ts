@@ -1,6 +1,6 @@
 import { IWeatherService } from './WeatherService.interface';
-import { WeatherDataDTO } from './WeatherDataDTO';
-import { IWeatherProvider } from '../types/IWeatherProvider';
+import { IWeatherProvider } from '../interfaces/IWeatherProvider';
+import {IWeatherData} from '../interfaces/weather/IWeatherData';
 
 export class WeatherService implements IWeatherService {
   constructor(private weatherProvider: IWeatherProvider) {
@@ -9,7 +9,7 @@ export class WeatherService implements IWeatherService {
     });
   }
 
-  async getWeather(city: string): Promise<WeatherDataDTO> {
+  async getWeather(city: string): Promise<IWeatherData> {
     return await this.weatherProvider.getWeather(city);
   }
 }

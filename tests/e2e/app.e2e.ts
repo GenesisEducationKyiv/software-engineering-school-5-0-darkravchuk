@@ -1,8 +1,8 @@
 import express from 'express';
-import { IWeatherProvider } from '../../src/types/IWeatherProvider';
-import { IEmailProvider } from '../../src/types/IEmailProvider';
-import { ISubscriptionRepository } from '../../src/types/ISubscriptionRepository';
-import { Subscription } from '../../src/types/Subscription';
+import { IWeatherProvider } from '../../src/interfaces/IWeatherProvider';
+import { IEmailProvider } from '../../src/interfaces/IEmailProvider';
+import { ISubscriptionRepository } from '../../src/interfaces/ISubscriptionRepository';
+import { ISubscription } from '../../src/interfaces/ISubscription';
 import { EmailSender } from '../../src/utils/EmailSender';
 import { WeatherService } from '../../src/services/weatherService';
 import { SubscriptionController } from '../../src/controllers/subscriptionController';
@@ -27,26 +27,26 @@ const mockEmailProvider: IEmailProvider = {
 };
 
 class TestSubscriptionRepository implements ISubscriptionRepository {
-  private subscriptions: Subscription[] = [];
+  private subscriptions: ISubscription[] = [];
   private idCounter = 1;
 
-  async findByEmail(email: string): Promise<Subscription | null> {
+  async findByEmail(email: string): Promise<ISubscription | null> {
     return this.subscriptions.find(s => s.email === email) || null;
   }
 
-  async findByConfirmationToken(token: string): Promise<Subscription | null> {
+  async findByConfirmationToken(token: string): Promise<ISubscription | null> {
     return this.subscriptions.find(s => s.confirmationToken === token) || null;
   }
 
-  async findByUnsubscribeToken(token: string): Promise<Subscription | null> {
+  async findByUnsubscribeToken(token: string): Promise<ISubscription | null> {
     return this.subscriptions.find(s => s.unsubscribeToken === token) || null;
   }
 
-  async findAllByFrequency(frequency: 'hourly' | 'daily'): Promise<Subscription[]> {
+  async findAllByFrequency(frequency: 'hourly' | 'daily'): Promise<ISubscription[]> {
     return this.subscriptions.filter(s => s.frequency === frequency);
   }
 
-  async findOne(filter: { email: string; city: string; frequency: 'hourly' | 'daily'; confirmed: boolean }): Promise<Subscription | null> {
+  async findOne(filter: { email: string; city: string; frequency: 'hourly' | 'daily'; confirmed: boolean }): Promise<ISubscription | null> {
     return this.subscriptions.find(s =>
       s.email === filter.email &&
             s.city === filter.city &&
@@ -55,25 +55,25 @@ class TestSubscriptionRepository implements ISubscriptionRepository {
     ) || null;
   }
 
-  async create(data: Subscription): Promise<Subscription> {
+  async create(data: ISubscription): Promise<ISubscription> {
     const subscription = { ...data, id: this.idCounter++ };
     this.subscriptions.push(subscription);
     return subscription;
   }
 
-  async update(subscription: Subscription): Promise<Subscription> {
+  async update(subscription: ISubscription): Promise<ISubscription> {
     const index = this.subscriptions.findIndex(s => s.id === subscription.id);
     if (index === -1) throw new Error('Subscription not found');
     this.subscriptions[index] = subscription;
     return subscription;
   }
 
-  async delete(subscription: Subscription): Promise<void> {
+  async delete(subscription: ISubscription): Promise<void> {
     const index = this.subscriptions.findIndex(s => s.id === subscription.id);
     if (index !== -1) this.subscriptions.splice(index, 1);
   }
 
-  async findAll(): Promise<Subscription[]> {
+  async findAll(): Promise<ISubscription[]> {
     return this.subscriptions;
   }
 

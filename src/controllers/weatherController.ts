@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import {IWeatherService} from '../services/WeatherService.interface';
 import {BadRequestError} from '../errors/httpError';
-import {WeatherParams} from '../types/weather/WeatherParams';
+import {IWeatherParams} from '../interfaces/weather/IWeatherParams';
 
 export class WeatherController {
   private weatherService: IWeatherService;
@@ -10,7 +10,7 @@ export class WeatherController {
     this.weatherService = weatherService;
   }
 
-  async getWeather(req: Request<WeatherParams>, res: Response) {
+  async getWeather(req: Request<IWeatherParams>, res: Response) {
     const { city } = req.params;
 
     if (!city) {

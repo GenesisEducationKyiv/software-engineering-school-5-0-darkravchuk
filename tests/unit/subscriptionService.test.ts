@@ -1,11 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
 import SubscriptionService from '../../src/services/subscriptionService';
-import { IEmailSender } from '../../src/types/IEmailSender';
-import { ISubscriptionSubject } from '../../src/types/ISubscriptionSubject';
+import { IEmailSender } from '../../src/interfaces/IEmailSender';
+import { ISubscriptionSubject } from '../../src/interfaces/ISubscriptionSubject';
 import EmailObserver from '../../src/utils/emailObserver';
 import { NotFoundError, ConflictError, WeatherUpdateError } from '../../src/errors/httpError';
 import {MockSubscriptionRepository} from '../mocks/MockSubscriptionRepository';
-import {SubscriptionCreateData} from '../../src/types/ISubscriptionRepository';
+import {SubscriptionCreateData} from '../../src/interfaces/ISubscriptionRepository';
 
 jest.mock('uuid', () => ({
   v4: jest.fn(),

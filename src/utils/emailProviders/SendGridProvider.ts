@@ -1,5 +1,5 @@
 import sgMail from '@sendgrid/mail';
-import { IEmailProvider } from '../../types/IEmailProvider';
+import { IEmailProvider } from '../../interfaces/IEmailProvider';
 
 export class SendGridProvider implements IEmailProvider {
   configure(config: { apiKey: string }) {

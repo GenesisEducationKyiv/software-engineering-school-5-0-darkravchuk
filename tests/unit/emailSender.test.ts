@@ -1,9 +1,9 @@
 import { EmailSender } from '../../src/utils/EmailSender';
-import { IEmailProvider } from '../../src/types/IEmailProvider';
+import { IEmailProvider } from '../../src/interfaces/IEmailProvider';
 import * as emailBuilder from '../../src/utils/emailBuilder';
 import { EmailContent } from '../../src/utils/emailBuilder';
 
-jest.mock('../../src/types/IEmailProvider');
+jest.mock('../../src/interfaces/IEmailProvider');
 jest.mock('../../src/utils/emailBuilder');
 
 describe('EmailSender Unit Tests', () => {

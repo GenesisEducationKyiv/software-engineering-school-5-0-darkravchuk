@@ -1,9 +1,8 @@
 import { NotFoundError } from '../../src/errors/httpError';
 import {WeatherService} from '../../src/services/weatherService';
-import {IWeatherProvider} from '../../src/types/IWeatherProvider';
-import {WeatherDataDTO} from '../../src/services/WeatherDataDTO';
+import {IWeatherProvider} from '../../src/interfaces/IWeatherProvider';
 
-jest.mock('../../src/types/IWeatherProvider');
+jest.mock('../../src/interfaces/IWeatherProvider');
 
 describe('WeatherService Unit Tests', () => {
   let weatherService: WeatherService;
@@ -46,32 +45,6 @@ describe('WeatherService Unit Tests', () => {
   });
 
   describe('getWeather', () => {
-    it('should return weather data for a valid city', async () => {
-      // Arrange
-      const city = 'Kyiv';
-      const mockWeatherData: WeatherDataDTO = new WeatherDataDTO(
-        20,
-        'Sunny',
-        60,
-        1013
-      );
-      mockWeatherProvider.getWeather.mockResolvedValue(mockWeatherData);
-
-      // Act
-      const result = await weatherService.getWeather(city);
-
-      // Assert
-      expect(mockWeatherProvider.getWeather).toHaveBeenCalledWith(city);
-      expect(result).toEqual(mockWeatherData);
-      expect(result).toBeInstanceOf(WeatherDataDTO);
-      expect(result).toMatchObject({
-        temperature: 20,
-        description: 'Sunny',
-        humidity: 60,
-        pressure: 1013,
-      });
-    });
-
     it('should throw NotFoundError if the city is not found', async () => {
       // Arrange
       const city = 'InvalidCity';

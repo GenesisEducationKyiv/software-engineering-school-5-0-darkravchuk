@@ -1,5 +1,5 @@
-import { IEmailProvider } from '../types/IEmailProvider';
-import { IEmailSender } from '../types/IEmailSender';
+import { IEmailProvider } from '../interfaces/IEmailProvider';
+import { IEmailSender } from '../interfaces/IEmailSender';
 import { buildConfirmationEmail, buildWeatherUpdateEmail, buildUnsubscribeEmail, EmailContent } from './emailBuilder';
 
 export class EmailSender implements IEmailSender {
