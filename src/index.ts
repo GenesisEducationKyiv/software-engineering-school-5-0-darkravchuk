@@ -11,9 +11,6 @@ import {initDependencies} from './initApp';
 import {scheduleWeatherUpdates} from './schedulers/scheduleWeatherUpdates';
 
 const app = express();
-
-console.log('SENDGRID_API_KEY:', process.env.SENDGRID_API_KEY?.slice(0,5) + '...');
-
 const { weatherController, subscriptionController, subscriptionService } = initDependencies();
 
 app.use(actuator())
