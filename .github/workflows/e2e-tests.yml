@@ -22,7 +22,7 @@ jobs:
       POSTMARK_API_KEY: ${{ secrets.POSTMARK_API_KEY }}
       PORT: 3000
       SERVER_HOST: backend
-      NODE_ENV: test
+      NODE_ENV: e2e_test
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

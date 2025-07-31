@@ -17,7 +17,7 @@ export class SendGridProvider implements IEmailProvider {
             const response = await sgMail.send({
                 ...msg, mailSettings: {
                     sandboxMode: {
-                        enable: process.env.NODE_ENV === 'test',
+                        enable: process.env.NODE_ENV === 'e2e_test',
                     }
                 }
             });
