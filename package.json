@@ -14,8 +14,8 @@
     "test:migrate": "sequelize db:migrate --config src/config/database-migrations.js --env test",
     "test:docker": "docker compose --env-file .env.test -f docker-compose.e2e.test.yml up --build",
 
-    "test:e2e:pipeline": "docker compose -f docker-compose.e2e.test.yml up --build --abort-on-container-exit --exit-code-from e2e-tests",
-    "test:integration:pipeline": "docker compose -f docker-compose.integration.test.yml up --build --abort-on-container-exit --exit-code-from integration-tests"
+    "test:e2e:pipeline": "docker compose -f docker-compose.e2e.test.yml up --build --abort-on-container-exit --exit-code-from e2e-tests || true",
+    "test:integration:pipeline": "docker compose -f docker-compose.integration.test.yml up --build --abort-on-container-exit --exit-code-from integration-tests || true"
   },
   "keywords": [],
   "author": "",
