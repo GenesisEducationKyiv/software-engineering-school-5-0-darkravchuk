@@ -6,6 +6,8 @@ const hostname = process.env.SERVER_HOST || 'localhost';
 
 test.describe('Subscription E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
+    console.log("SERVER_HOST: " + process.env.SERVER_HOST);
+    console.log("DB_PASSWORD" + process.env.DB_PASSWORD)
     await page.goto(`http://${hostname}:${port}/`);
   });
 
