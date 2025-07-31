@@ -1,19 +1,15 @@
-import { Observer } from '../types';
-import { IEmailSender } from '../types/IEmailSender';
+import { IObserver } from '../interfaces/IObserver';
+import { IEmailSender } from '../interfaces/IEmailSender';
+import {IWeatherData} from '../interfaces/weather/IWeatherData';
 
-export default class EmailObserver implements Observer {
+export default class EmailObserver implements IObserver {
   constructor(
       private email: string,
       private unsubscribeToken: string,
       private emailSender: IEmailSender,
   ) {}
 
-  async update(city: string, weather: {
-    temperature: number;
-    description: string;
-    humidity: number;
-    pressure: number;
-  }): Promise<void> {
+  async update(city: string, weather: IWeatherData): Promise<void> {
     try {
       await this.emailSender.sendWeatherUpdateEmail(this.email, city, this.unsubscribeToken, weather);
       console.log(`Weather update email sent to ${this.email}`);
@@ -27,7 +23,7 @@ export default class EmailObserver implements Observer {
     return this.email;
   }
 
-  equals(other: Observer): boolean {
+  equals(other: IObserver): boolean {
     if (!(other instanceof EmailObserver)) return false;
     return this.email === other.email && this.unsubscribeToken === other.unsubscribeToken;
   }

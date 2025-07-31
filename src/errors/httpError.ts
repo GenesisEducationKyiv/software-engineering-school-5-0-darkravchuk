@@ -29,4 +29,10 @@ class WeatherUpdateError extends HttpError {
   }
 }
 
-export { HttpError, NotFoundError, ConflictError, WeatherUpdateError };
+class BadRequestError extends HttpError {
+  constructor(message: string) {
+    super(400, message);
+  }
+}
+
+export { HttpError, NotFoundError, ConflictError, WeatherUpdateError, BadRequestError };

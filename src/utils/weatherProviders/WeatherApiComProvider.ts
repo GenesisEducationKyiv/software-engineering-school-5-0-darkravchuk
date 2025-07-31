@@ -1,7 +1,7 @@
 import axios from 'axios';
-import { IWeatherProvider } from '../../types/IWeatherProvider';
-import { WeatherDataDTO } from '../../services/WeatherDataDTO';
-import { HttpError, NotFoundError } from '../../errors/httpError';
+import {IWeatherProvider} from '../../interfaces/IWeatherProvider';
+import {HttpError, NotFoundError} from '../../errors/httpError';
+import {IWeatherData} from '../../interfaces/weather/IWeatherData';
 
 export class WeatherApiComProvider implements IWeatherProvider {
   private apiKey: string = '';
@@ -13,23 +13,23 @@ export class WeatherApiComProvider implements IWeatherProvider {
     }
   }
 
-  async getWeather(city: string): Promise<WeatherDataDTO> {
+  async getWeather(city: string): Promise<IWeatherData> {
     try {
       const url = `http://api.weatherapi.com/v1/current.json?key=${this.apiKey}&q=${city}`;
-      const response = await axios.get(url, { timeout: 10000 });
+      const response = await axios.get(url, {timeout: 10000});
 
       if (!response.data || !response.data.current) {
         throw new NotFoundError(`No weather data available for ${city}`);
       }
 
-      const { current } = response.data;
+      const {current} = response.data;
 
-      return new WeatherDataDTO(
-        current.temp_c,
-        current.condition.text,
-        current.humidity,
-        current.pressure_mb
-      );
+      return {
+        temperature: current.temp_c,
+        humidity: current.humidity,
+        pressure: current.pressure_mb,
+        description: current.condition.text
+      };
     } catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 404) {

@@ -2,7 +2,6 @@
 export interface ISubscriptionService {
     subscribe(email: string, city: string, frequency: 'hourly' | 'daily'): Promise<{
         message: string;
-        confirmationToken: string;
     }>;
 
     confirmSubscription(confirmationToken: string): Promise<{

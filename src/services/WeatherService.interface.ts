@@ -1,5 +1,5 @@
-import {WeatherDataDTO} from './WeatherDataDTO';
+import {IWeatherData} from '../interfaces/weather/IWeatherData';
 
 export interface IWeatherService {
-    getWeather(city: string): Promise<WeatherDataDTO>;
+    getWeather(city: string): Promise<IWeatherData>;
 }

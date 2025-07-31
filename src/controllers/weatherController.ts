@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
-import { WeatherParams } from '../types/weather';
 import {IWeatherService} from '../services/WeatherService.interface';
+import {BadRequestError} from '../errors/httpError';
+import {IWeatherParams} from '../interfaces/weather/IWeatherParams';
 
 export class WeatherController {
   private weatherService: IWeatherService;
@@ -9,9 +10,12 @@ export class WeatherController {
     this.weatherService = weatherService;
   }
 
-  async getWeather(req: Request<WeatherParams>, res: Response) {
+  async getWeather(req: Request<IWeatherParams>, res: Response) {
     const { city } = req.params;
 
+    if (!city) {
+      throw new BadRequestError('City parameter is required');
+    }
     const weatherData = await this.weatherService.getWeather(city);
     res.status(200).json({
       city,
