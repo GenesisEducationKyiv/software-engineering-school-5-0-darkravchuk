@@ -27,6 +27,18 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run E2E tests
+        env:
+          DB_USER: postgres
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: weather_db
+          DB_HOST: db
+          DB_PORT: 5432
+          DOMAIN: http://localhost
+          WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          POSTMARK_API_KEY: ${{ secrets.POSTMARK_API_KEY }}
+          PORT: 3000
+          SERVER_HOST: backend
         run: npm run test:e2e:pipeline
 
       - name: Upload Playwright report
