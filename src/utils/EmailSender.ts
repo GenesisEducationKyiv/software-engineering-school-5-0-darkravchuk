@@ -13,7 +13,7 @@ export class EmailSender implements IEmailSender {
 
   async sendConfirmationEmail(to: string, confirmationToken: string): Promise<void> {
     const emailContent = buildConfirmationEmail(to, confirmationToken);
-    await this.emailProvider.send(emailContent);
+    this.emailProvider.send(emailContent);
   }
 
   async sendWeatherUpdateEmail(to: string, city: string, unsubscribeToken: string, weather: {
@@ -23,11 +23,11 @@ export class EmailSender implements IEmailSender {
     pressure: number;
   }): Promise<void> {
     const emailContent = buildWeatherUpdateEmail(to, city, unsubscribeToken, weather);
-    await this.emailProvider.send(emailContent);
+    this.emailProvider.send(emailContent);
   }
 
   async sendUnsubscribeEmail(to: string, unsubscribeToken: string): Promise<void> {
     const emailContent = buildUnsubscribeEmail(to, unsubscribeToken);
-    await this.emailProvider.send(emailContent);
+    this.emailProvider.send(emailContent);
   }
 }
