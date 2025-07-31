@@ -27,7 +27,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      NODE_ENV: ${NODE_ENV}
+      NODE_ENV: e2e_test
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
@@ -61,6 +61,7 @@ services:
       db:
         condition: service_healthy
     environment:
+      NODE_ENV: test
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
