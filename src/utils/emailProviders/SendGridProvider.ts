@@ -14,10 +14,13 @@ export class SendGridProvider implements IEmailProvider {
         html: string;
     }): Promise<any> {
         try {
-            if (process.env.NODE_ENV === 'test')
-                return;
-
-            const response = await sgMail.send(msg);
+            const response = await sgMail.send({
+                ...msg, mailSettings: {
+                    sandboxMode: {
+                        enable: process.env.NODE_ENV === 'test',
+                    }
+                }
+            });
             console.log(`Email sent to ${msg.to}`, response);
             return response;
         } catch (error) {
