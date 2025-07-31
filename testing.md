@@ -29,7 +29,7 @@ This runs:
 
 **Cleanup**:
 ```bash
-docker compose -f docker-compose.test.yml down --volumes
+docker compose -f docker-compose.e2e.test.yml down --volumes
 docker compose -f docker-compose.e2e.yml down --volumes
 ```
 
@@ -48,12 +48,12 @@ Tests are located in `/tests/unit/*.test.ts`.
 Run Jest integration tests with PostgreSQL (port `5434:5432`):
 
 ```bash
-docker compose -f docker-compose.test.yml up --build --abort-on-container-exit
+docker compose -f docker-compose.e2e.test.yml up --build --abort-on-container-exit
 ```
 
 **Cleanup**:
 ```bash
-docker compose -f docker-compose.test.yml down --volumes
+docker compose -f docker-compose.e2e.test.yml down --volumes
 ```
 
 Tests are located in `/tests/integration/*.test.ts`. Migrations are applied via `npm run test:migrate`.

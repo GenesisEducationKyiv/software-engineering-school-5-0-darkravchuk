@@ -16,7 +16,6 @@ services:
       start_period: 10s
     networks:
       - test-network
-    command: sh -c "npm run migrate"
 
   backend:
     container_name: backend
@@ -42,7 +41,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: sh -c "npm run start"
+    command: sh -c "npm run migrate && npm run start"
     networks:
       - test-network
     healthcheck:
@@ -51,30 +50,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
-
-  integration-tests:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "3001:3001"
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      NODE_ENV: test
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
-      DOMAIN: ${DOMAIN}
-      WEATHER_API_KEY: ${WEATHER_API_KEY}
-      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
-      POSTMARK_API_KEY: ${POSTMARK_API_KEY}
-    command: sh -c "npm run test:integration"
-    networks:
-      - test-network
 
   e2e-tests:
     build:
@@ -86,8 +61,6 @@ services:
       SERVER_HOST: ${SERVER_HOST}
       PORT: ${PORT}
     depends_on:
-      db:
-        condition: service_healthy
       backend:
         condition: service_started
     command: sh -c "npm run test:e2e"
