@@ -2,6 +2,7 @@ import express, { Application } from 'express';
 import request from 'supertest';
 import {IWeatherService} from '../../src/services/WeatherService.interface';
 import {WeatherController} from '../../src/controllers/weatherController';
+import {NotFoundError} from "../../src/errors/httpError";
 
 const mockWeatherService: jest.Mocked<IWeatherService> = {
   getWeather: jest.fn(),
@@ -50,16 +51,15 @@ describe('WeatherController Integration Tests', () => {
     expect(mockWeatherService.getWeather).toHaveBeenCalledWith(city);
   });
 
-  it('should return 404 if city is not found', async () => {
+  it('should return correct status code if city is not found', async () => {
     // Arrange
     const city = 'UnknownCity';
-    mockWeatherService.getWeather.mockRejectedValue(new Error('City not found'));
+    mockWeatherService.getWeather.mockRejectedValue(new NotFoundError('City not found'));
 
     // Act
     const response = await request(app).get(`/weather/${city}`);
 
     // Assert
-    expect(response.status).toBe(500); // Assuming unhandled error returns 500
-    expect(mockWeatherService.getWeather).toHaveBeenCalledWith(city);
+    expect(response.status).toBe(404);
   });
 });

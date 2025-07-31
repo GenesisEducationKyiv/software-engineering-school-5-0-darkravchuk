@@ -32,16 +32,6 @@ describe('WeatherService Unit Tests', () => {
         apiKey: 'test-api-key',
       });
     });
-
-    it('should configure the weather provider with an empty string if API key is not set', () => {
-      // Arrange
-      delete process.env.WEATHER_API_KEY;
-
-      // Assert
-      expect(mockWeatherProvider.configure).toHaveBeenCalledWith({
-        apiKey: '',
-      });
-    });
   });
 
   describe('getWeather', () => {

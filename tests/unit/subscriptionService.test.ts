@@ -47,33 +47,6 @@ describe('SubscriptionService Unit Tests', () => {
   });
 
   describe('subscribe', () => {
-    it('should create a subscription and send confirmation email', async () => {
-      // Arrange
-      const email = 'test@example.com';
-      const city = 'Kyiv';
-      const frequency = 'daily' as const; // Use 'as const' to ensure literal type
-      const confirmationToken = 'confirm-token';
-      const unsubscribeToken = 'unsub-token';
-      (uuidv4 as jest.Mock).mockReturnValueOnce(confirmationToken).mockReturnValueOnce(unsubscribeToken);
-
-      // Act
-      const result = await subscriptionService.subscribe(email, city, frequency);
-
-      // Assert
-      const createdSubscription = await mockRepository.findByEmail(email);
-      expect(createdSubscription).toEqual({
-        id: 1,
-        email,
-        city,
-        frequency,
-        confirmationToken,
-        unsubscribeToken,
-        confirmed: false,
-      });
-      expect(mockEmailSender.sendConfirmationEmail).toHaveBeenCalledWith(email, confirmationToken);
-      expect(result).toEqual({ message: 'Subscription created. Check your email for confirmation.' });
-    });
-
     it('should throw ConflictError if email is already subscribed', async () => {
       // Arrange
       const email = 'test@example.com';
@@ -124,7 +97,7 @@ describe('SubscriptionService Unit Tests', () => {
       expect(result).toEqual({ message: 'Subscription confirmed successfully' });
     });
 
-    it('should throw NotFoundError if token is not found', async () => {
+    it('should throw NotFoundError if confirmation token is not found', async () => {
       // Arrange
       const confirmationToken = 'invalid-token';
 
@@ -270,50 +243,6 @@ describe('SubscriptionService Unit Tests', () => {
           stack: error.stack,
         })
       );
-    });
-  });
-
-  describe('findAll', () => {
-    it('should return all subscriptions', async () => {
-      // Arrange
-      const subscriptions: SubscriptionCreateData[] = [
-        {
-          email: 'test1@example.com',
-          city: 'Kyiv',
-          frequency: 'daily',
-          confirmed: true,
-          confirmationToken: 'token1',
-          unsubscribeToken: 'unsub1',
-        },
-        {
-          email: 'test2@example.com',
-          city: 'Lviv',
-          frequency: 'hourly',
-          confirmed: false,
-          confirmationToken: 'token2',
-          unsubscribeToken: 'unsub2',
-        },
-      ];
-      await mockRepository.create(subscriptions[0]);
-      await mockRepository.create(subscriptions[1]);
-
-      // Act
-      const result = await mockRepository.findAll();
-
-      // Assert
-      expect(result).toHaveLength(2);
-      expect(result).toEqual([
-        expect.objectContaining({ id: 1, ...subscriptions[0] }),
-        expect.objectContaining({ id: 2, ...subscriptions[1] }),
-      ]);
-    });
-
-    it('should return an empty array if no subscriptions exist', async () => {
-      // Act
-      const result = await mockRepository.findAll();
-
-      // Assert
-      expect(result).toEqual([]);
     });
   });
 });

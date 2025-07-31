@@ -70,13 +70,19 @@ describe('Subscription Controller Integration', () => {
         expect(response.status).toBe(200);
         expect(response.body).toHaveProperty('message', 'Subscription confirmed successfully');
       });
-    });
 
-    describe('GET /api/subscription/confirm/:token', () => {
       it('should return 404 and error message response for an invalid token', async () => {
         const response = await request(app).get(`/api/subscription/confirm/${invalidToken}`);
         expect(response.status).toBe(404);
         expect(response.body).toHaveProperty('error', 'Token not found');
+      });
+
+      it('should return 409 and conflict message response for recurrent confirm request', async () => {
+        await request(app).get(`/api/subscription/confirm/${mockedToken}`);
+        const response = await request(app).get(`/api/subscription/confirm/${mockedToken}`);
+
+        expect(response.status).toBe(409);
+        expect(response.body).toHaveProperty('error', 'Already confirmed');
       });
     });
 
@@ -93,6 +99,15 @@ describe('Subscription Controller Integration', () => {
         await request(app).get(`/api/subscription/confirm/${mockedToken}`);
 
         const response = await request(app).get(`/api/subscription/unsubscribe/${invalidToken}`);
+        expect(response.status).toBe(404);
+        expect(response.body).toHaveProperty('error', 'Token not found');
+      });
+
+      it('should return 404 and not found error message response for recurrent confirm request', async () => {
+        await request(app).get(`/api/subscription/confirm/${mockedToken}`);
+        await request(app).get(`/api/subscription/unsubscribe/${mockedToken}`);
+        const response = await request(app).get(`/api/subscription/unsubscribe/${mockedToken}`);
+
         expect(response.status).toBe(404);
         expect(response.body).toHaveProperty('error', 'Token not found');
       });
