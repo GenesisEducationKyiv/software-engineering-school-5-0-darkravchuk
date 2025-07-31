@@ -26,5 +26,5 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run E2E tests
+      - name: Run Integration tests
         run: npm run test:integration:pipeline
