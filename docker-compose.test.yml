@@ -16,6 +16,7 @@ services:
       start_period: 10s
     networks:
       - test-network
+    command: sh -c "npm run migrate"
 
   backend:
     container_name: backend
@@ -41,7 +42,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: sh -c "npm run migrate && npm run start"
+    command: sh -c "npm run start"
     networks:
       - test-network
     healthcheck:
