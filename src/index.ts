@@ -11,8 +11,9 @@ import {initDependencies} from './initApp';
 import {scheduleWeatherUpdates} from './schedulers/scheduleWeatherUpdates';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-const DOMAIN = process.env.DOMAIN || 'http://localhost';
+
+console.log("SERVER_HOST: " + process.env.SERVER_HOST);
+console.log("DB_PASSWORD" + process.env.DB_PASSWORD)
 
 const { weatherController, subscriptionController, subscriptionService } = initDependencies();
 
