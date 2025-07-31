@@ -2,7 +2,7 @@ import express, { Application } from 'express';
 import request from 'supertest';
 import {IWeatherService} from '../../src/services/WeatherService.interface';
 import {WeatherController} from '../../src/controllers/weatherController';
-import {NotFoundError} from "../../src/errors/httpError";
+import {NotFoundError} from '../../src/errors/httpError';
 
 const mockWeatherService: jest.Mocked<IWeatherService> = {
   getWeather: jest.fn(),

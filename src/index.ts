@@ -13,7 +13,7 @@ import {scheduleWeatherUpdates} from './schedulers/scheduleWeatherUpdates';
 const app = express();
 const { weatherController, subscriptionController, subscriptionService } = initDependencies();
 
-app.use(actuator())
+app.use(actuator());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
