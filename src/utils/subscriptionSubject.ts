@@ -20,6 +20,9 @@ class SubscriptionSubject implements ISubscriptionSubject {
     this.weatherService = weatherService;
     this.emailSender = emailSender;
     this.subscriptionRepository = subscriptionRepository;
+    this.syncWithDB().catch(err => {
+      console.error('Failed to sync observers on initialization:', err);
+    });
   }
 
   async syncWithDB(): Promise<void> {

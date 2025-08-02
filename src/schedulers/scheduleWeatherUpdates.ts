@@ -18,6 +18,6 @@ export async function scheduleWeatherUpdates(subscriptionService: SubscriptionSe
     }
   };
 
-  scheduleJob('0 * * * *', 'hourly');
+  scheduleJob('* * * * *', 'hourly');
   scheduleJob('0 0 * * *', 'daily');
 }

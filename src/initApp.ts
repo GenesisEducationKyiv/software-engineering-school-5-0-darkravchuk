@@ -7,16 +7,24 @@ import { OpenWeatherMapProvider } from './utils/weatherProviders/OpenWeatherMapP
 import { AccuWeatherProvider } from './utils/weatherProviders/AccuWeatherProvider';
 import { WeatherProviderChain } from './utils/weatherProviders/WeatherProviderChain';
 import { WeatherLogger } from './utils/weatherProviders/WeatherLogger';
+import { RedisCache } from './utils/cache/RedisCache';
+import { PrometheusMetrics } from './utils/metrics/PrometheusMetrics';
 import {WeatherService} from './services/weatherService';
+import {CachedWeatherService} from './services/CachedWeatherService';
 import {WeatherController} from './controllers/weatherController';
 import SubscriptionService from './services/subscriptionService';
 import {SubscriptionController} from './controllers/subscriptionController';
 import { appConfig } from './config/AppConfig';
 
 export interface AppDependencies {
+    weatherService: CachedWeatherService;
     weatherController: WeatherController;
     subscriptionService: SubscriptionService;
     subscriptionController: SubscriptionController;
+    emailSender: EmailSender;
+    subscriptionSubject: SubscriptionSubject;
+    cache: RedisCache;
+    metrics: PrometheusMetrics;
 }
 
 export function initDependencies(): AppDependencies {
@@ -45,9 +53,33 @@ export function initDependencies(): AppDependencies {
   accuWeatherProvider.configure({ apiKey: weatherConfig.accuWeatherApiKey });
   weatherProviderChain.addProvider(accuWeatherProvider);
   
-  const weatherService = new WeatherService(weatherProviderChain);
+  // const weatherService = new WeatherService(weatherProviderChain);
   
   // Configure email provider
+  // Initialize Prometheus metrics
+  const metrics = new PrometheusMetrics();
+  
+  // Initialize Redis cache with Prometheus metrics
+  const cache = new RedisCache({
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT || '6379'),
+    password: process.env.REDIS_PASSWORD,
+    db: parseInt(process.env.REDIS_DB || '0'),
+    ttl: parseInt(process.env.CACHE_TTL || '300') // 5 minutes default
+  }, metrics);
+  
+  // Create weather provider chain with multiple providers
+//   const weatherProviderChain = new WeatherProviderChain();
+//   weatherProviderChain.addProvider(new WeatherApiComProvider());
+//   weatherProviderChain.addProvider(new OpenWeatherMapProvider());
+//   weatherProviderChain.addProvider(new AccuWeatherProvider());
+  
+  // Create base weather service
+  const baseWeatherService = new WeatherService(weatherProviderChain);
+  
+  // Wrap with cached weather service
+  const weatherService = new CachedWeatherService(baseWeatherService, cache, metrics);
+  
   const emailProvider = new SendGridProvider();
   emailProvider.configure({ apiKey: emailConfig.sendGridApiKey });
   const emailSender = new EmailSender(emailProvider);
@@ -60,6 +92,10 @@ export function initDependencies(): AppDependencies {
   return {
     weatherController,
     subscriptionService,
-    subscriptionController
+    subscriptionController,
+    emailSender,
+    subscriptionSubject,
+    cache,
+    metrics
   };
 }

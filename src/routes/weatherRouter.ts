@@ -23,5 +23,41 @@ export default (weatherController: WeatherController) => {
     )
   );
 
+  // Cache management endpoints
+  router.get(
+    '/cache/metrics',
+    handleError<{}, any>(
+      (req, res) => weatherController.getCacheMetrics(req, res)
+    )
+  );
+
+  router.post(
+    '/cache/refresh/:city',
+    handleError<{ city: string }, { message: string }>(
+      (req, res) => weatherController.refreshCache(req, res)
+    )
+  );
+
+  router.delete(
+    '/cache/clear',
+    handleError<{}, { message: string }>(
+      (req, res) => weatherController.clearCache(req, res)
+    )
+  );
+
+  router.get(
+    '/metrics/prometheus',
+    handleError<{}, string>(
+      (req, res) => weatherController.getPrometheusMetrics(req, res)
+    )
+  );
+
+  router.get(
+    '/metrics/report',
+    handleError<{}, { metrics: any }>(
+      (req, res) => weatherController.getMetricsReport(req, res)
+    )
+  );
+
   return router;
 };
