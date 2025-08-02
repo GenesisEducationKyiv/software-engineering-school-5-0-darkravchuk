@@ -1,4 +1,4 @@
-import {IWeatherData} from "./weather/IWeatherData";
+import {IWeatherData} from './weather/IWeatherData';
 
 export interface IWeatherProvider {
     readonly name: string;

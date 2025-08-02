@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { IWeatherProvider } from '../../interfaces/IWeatherProvider';
 import { NotFoundError } from '../../errors/httpError';
-import { IWeatherData } from "../../interfaces/weather/IWeatherData";
+import { IWeatherData } from '../../interfaces/weather/IWeatherData';
 import { WeatherProviderErrorHandler } from './WeatherProviderErrorHandler';
 
 export class AccuWeatherProvider implements IWeatherProvider {

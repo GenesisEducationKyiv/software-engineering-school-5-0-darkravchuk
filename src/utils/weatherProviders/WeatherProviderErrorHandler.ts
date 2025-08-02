@@ -16,23 +16,23 @@ export class WeatherProviderErrorHandler {
       
       // Map HTTP status codes to appropriate errors
       switch (status) {
-        case 404:
-          throw new NotFoundError(`Weather data for ${city} not found`);
-        case 401:
-          if (checkAuthError) {
-            throw new HttpError(401, `Invalid API key for ${providerName}`);
-          }
-          // Fall through to 500 if auth error checking is disabled
-          break;
-        case 429:
-          throw new HttpError(429, `Rate limit exceeded for ${providerName}`);
-        case 500:
-        case 502:
-        case 503:
-        case 504:
-          throw new HttpError(503, `Service temporarily unavailable for ${providerName}`);
-        default:
-          throw new HttpError(500, `Failed to fetch weather for ${city} from ${providerName}`);
+      case 404:
+        throw new NotFoundError(`Weather data for ${city} not found`);
+      case 401:
+        if (checkAuthError) {
+          throw new HttpError(401, `Invalid API key for ${providerName}`);
+        }
+        // Fall through to 500 if auth error checking is disabled
+        break;
+      case 429:
+        throw new HttpError(429, `Rate limit exceeded for ${providerName}`);
+      case 500:
+      case 502:
+      case 503:
+      case 504:
+        throw new HttpError(503, `Service temporarily unavailable for ${providerName}`);
+      default:
+        throw new HttpError(500, `Failed to fetch weather for ${city} from ${providerName}`);
       }
     }
 

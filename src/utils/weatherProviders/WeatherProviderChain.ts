@@ -1,7 +1,7 @@
 import { IWeatherProvider } from '../../interfaces/IWeatherProvider';
 import { ILogger } from '../../interfaces/ILogger';
 import { HttpError } from '../../errors/httpError';
-import {IWeatherData} from "../../interfaces/weather/IWeatherData";
+import {IWeatherData} from '../../interfaces/weather/IWeatherData';
 
 const PROVIDER_CONFIG_MAP: Record<string, string> = {
   'weatherapi.com': 'WEATHER_API_KEY',

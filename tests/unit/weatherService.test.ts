@@ -64,7 +64,7 @@ describe('WeatherService Unit Tests', () => {
 
       // Act & Assert
       await expect(weatherService.getWeather(city)).rejects.toThrow(
-          new NotFoundError('City not found')
+        new NotFoundError('City not found')
       );
       expect(mockWeatherProvider.getWeather).toHaveBeenCalledWith(city);
     });
