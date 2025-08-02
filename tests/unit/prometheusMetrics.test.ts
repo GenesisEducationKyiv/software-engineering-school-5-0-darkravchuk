@@ -12,60 +12,60 @@ describe('PrometheusMetrics', () => {
   });
 
   describe('Application Metrics', () => {
-    it('should record successful requests', () => {
+    it('should record successful requests', async () => {
       metrics.recordRequest('GET', '/api/weather/:city', true, 150);
       
-      const summary = metrics.getApplicationMetricsSummary();
+      const summary = await metrics.getApplicationMetricsSummary();
       expect(summary.totalRequests).toBe(1);
       expect(summary.successfulRequests).toBe(1);
       expect(summary.failedRequests).toBe(0);
     });
 
-    it('should record failed requests', () => {
+    it('should record failed requests', async () => {
       metrics.recordRequest('GET', '/api/weather/:city', false, 200, 'TimeoutError');
       
-      const summary = metrics.getApplicationMetricsSummary();
+      const summary = await metrics.getApplicationMetricsSummary();
       expect(summary.totalRequests).toBe(1);
       expect(summary.successfulRequests).toBe(0);
       expect(summary.failedRequests).toBe(1);
     });
 
-    it('should calculate average response time', () => {
+    it('should calculate average response time', async () => {
       metrics.recordRequest('GET', '/api/weather/:city', true, 100);
       metrics.recordRequest('GET', '/api/weather/:city', true, 200);
       metrics.recordRequest('GET', '/api/weather/:city', true, 300);
       
-      const summary = metrics.getApplicationMetricsSummary();
+      const summary = await metrics.getApplicationMetricsSummary();
       expect(summary.averageResponseTime).toBe(200);
     });
   });
 
   describe('Cache Metrics', () => {
-    it('should record cache hits and misses', () => {
+    it('should record cache hits and misses', async () => {
       metrics.recordCacheHit('redis');
       metrics.recordCacheHit('redis');
       metrics.recordCacheMiss('redis');
       
-      const summary = metrics.getCacheMetricsSummary();
+      const summary = await metrics.getCacheMetricsSummary();
       expect(summary.hits).toBe(2);
       expect(summary.misses).toBe(1);
     });
 
-    it('should record cache operations', () => {
+    it('should record cache operations', async () => {
       metrics.recordCacheSet('redis');
       metrics.recordCacheSet('redis');
       metrics.recordCacheDelete('redis');
       
-      const summary = metrics.getCacheMetricsSummary();
+      const summary = await metrics.getCacheMetricsSummary();
       expect(summary.sets).toBe(2);
       expect(summary.deletes).toBe(1);
     });
 
-    it('should record cache errors', () => {
+    it('should record cache errors', async () => {
       metrics.recordCacheError('redis', 'connection_error');
       metrics.recordCacheError('redis', 'timeout_error');
       
-      const summary = metrics.getCacheMetricsSummary();
+      const summary = await  metrics.getCacheMetricsSummary();
       expect(summary.errors).toBe(2);
     });
   });
@@ -74,9 +74,7 @@ describe('PrometheusMetrics', () => {
     it('should record provider requests', () => {
       metrics.recordProviderRequest('weatherapi.com', true, 120);
       metrics.recordProviderRequest('openweathermap.org', false, 500, 'timeout');
-      
-      // Note: Prometheus metrics are cumulative, so we can't easily test individual values
-      // This test ensures the methods don't throw errors
+
       expect(() => {
         metrics.recordProviderRequest('accuweather.com', true, 200);
       }).not.toThrow();
@@ -126,7 +124,7 @@ describe('PrometheusMetrics', () => {
   });
 
   describe('Metrics Reset', () => {
-    it('should reset all metrics', () => {
+    it('should reset all metrics', async () => {
       // Record some metrics
       metrics.recordRequest('GET', '/api/weather/:city', true, 150);
       metrics.recordCacheHit('redis');
@@ -134,8 +132,8 @@ describe('PrometheusMetrics', () => {
       // Reset metrics
       metrics.resetMetrics();
       
-      const appSummary = metrics.getApplicationMetricsSummary();
-      const cacheSummary = metrics.getCacheMetricsSummary();
+      const appSummary = await metrics.getApplicationMetricsSummary();
+      const cacheSummary = await metrics.getCacheMetricsSummary();
       
       expect(appSummary.totalRequests).toBe(0);
       expect(cacheSummary.hits).toBe(0);

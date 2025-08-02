@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
-import { WeatherDataDTO } from '../../services/WeatherDataDTO';
 import { PrometheusMetrics } from '../metrics/PrometheusMetrics';
+import { IWeatherData } from '../../interfaces/weather/IWeatherData';
 
 export interface CacheConfig {
   host: string;
@@ -11,11 +11,21 @@ export interface CacheConfig {
 }
 
 export interface CacheMetrics {
-    hits: number;
-    misses: number;
-    sets: number;
-    deletes: number;
-    errors: number;
+  hits: number;
+  misses: number;
+  sets: number;
+  deletes: number;
+  errors: number;
+}
+
+function normalizeString(str: string): string {
+  return str
+    .normalize('NFD')                    // Decompose accented characters into base + diacritic
+    .replace(/[\u0300-\u036f]/g, '')     // Remove diacritic marks
+    .trim()                              // Remove leading/trailing whitespace
+    .toLowerCase()                       // Convert to lowercase
+    .replace(/\s+/g, '_')                // Replace all whitespace sequences with a single underscore
+    .replace(/[^a-z0-9_]/g, '');         // Remove all non-alphanumeric/underscore characters
 }
 
 export class RedisCache {
@@ -47,23 +57,18 @@ export class RedisCache {
   }
 
   private generateKey(city: string): string {
-    return `weather:${city.toLowerCase()}`;
+    return `weather:${normalizeString(city)}`;
   }
 
-  async get(city: string): Promise<WeatherDataDTO | null> {
+  async get(city: string): Promise<IWeatherData | null> {
     try {
       const key = this.generateKey(city);
       const cached = await this.client.get(key);
-      
+
       if (cached) {
         this.metrics.recordCacheHit('redis');
-        const data = JSON.parse(cached);
-        return new WeatherDataDTO(
-          data.temperature,
-          data.description,
-          data.humidity,
-          data.pressure
-        );
+        const data = JSON.parse(cached) as IWeatherData;
+        return data;
       } else {
         this.metrics.recordCacheMiss('redis');
         return null;
@@ -75,7 +80,7 @@ export class RedisCache {
     }
   }
 
-  async set(city: string, weatherData: WeatherDataDTO): Promise<void> {
+  async set(city: string, weatherData: IWeatherData): Promise<void> {
     try {
       const key = this.generateKey(city);
       const data = {
@@ -83,7 +88,7 @@ export class RedisCache {
         description: weatherData.description,
         humidity: weatherData.humidity,
         pressure: weatherData.pressure,
-        cachedAt: new Date().toISOString()
+        cachedAt: new Date().toISOString(),
       };
 
       await this.client.setex(key, this.ttl, JSON.stringify(data));
@@ -117,7 +122,7 @@ export class RedisCache {
     }
   }
 
-  async getMetrics(): Promise<CacheMetrics> {
+  async getCacheMetrics(): Promise<CacheMetrics> {
     return await this.metrics.getCacheMetricsSummary();
   }
 
@@ -133,4 +138,4 @@ export class RedisCache {
   async close(): Promise<void> {
     await this.client.quit();
   }
-} 
+}
