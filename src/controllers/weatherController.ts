@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { WeatherParams } from '../types/weather/WeatherParams';
 import {IWeatherService} from '../services/WeatherService.interface';
 import {BadRequestError} from '../errors/httpError';
 import { CachedWeatherService } from '../services/CachedWeatherService';
+import {IWeatherParams} from '../interfaces/weather/IWeatherParams';
 
 export class WeatherController {
   private weatherService: IWeatherService;
@@ -11,7 +11,7 @@ export class WeatherController {
     this.weatherService = weatherService;
   }
 
-  async getWeather(req: Request<WeatherParams>, res: Response) {
+  async getWeather(req: Request<IWeatherParams>, res: Response) {
     const { city } = req.params;
 
     if (!city) {
@@ -35,11 +35,11 @@ export class WeatherController {
         const status = providerChain.getProviderStatus();
         res.status(200).json({ providers: status });
       } else {
-        res.status(200).json({ 
-          providers: [{ 
-            name: 'weather-provider', 
-            available: true 
-          }] 
+        res.status(200).json({
+          providers: [{
+            name: 'weather-provider',
+            available: true
+          }]
         });
       }
     } catch (error) {

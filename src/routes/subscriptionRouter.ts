@@ -2,9 +2,9 @@ import { Router } from 'express';
 import { validateSubscription, validateToken } from '../middleware/validation';
 import { handleError } from '../middleware/errorHandler';
 import {SubscriptionController} from '../controllers/subscriptionController';
-import {SubscriptionRequest} from '../types/subscription/SubscriptionRequest';
-import {SuccessResponse} from '../types/subscription/SuccessResponse';
-import {TokenRequest} from '../types/subscription/TokenRequest';
+import {ISubscriptionRequest} from '../interfaces/subscription/ISubscriptionRequest';
+import {ISuccessResponse} from '../interfaces/subscription/ISuccessResponse';
+import {ITokenRequest} from '../interfaces/subscription/ITokenRequest';
 
 const router = Router();
 
@@ -12,7 +12,7 @@ export default (subscriptionController: SubscriptionController) => {
   router.post(
     '/subscribe',
     validateSubscription,
-    handleError<{}, SuccessResponse, SubscriptionRequest>(
+    handleError<{}, ISuccessResponse, ISubscriptionRequest>(
       (req, res) => subscriptionController.subscribe(req, res)
     )
   );
@@ -20,7 +20,7 @@ export default (subscriptionController: SubscriptionController) => {
   router.get(
     '/confirm/:token',
     validateToken,
-    handleError<TokenRequest, SuccessResponse>(
+    handleError<ITokenRequest, ISuccessResponse>(
       (req, res) => subscriptionController.confirmSubscription(req, res)
     )
   );
@@ -28,7 +28,7 @@ export default (subscriptionController: SubscriptionController) => {
   router.get(
     '/unsubscribe/:token',
     validateToken,
-    handleError<TokenRequest, SuccessResponse>(
+    handleError<ITokenRequest, ISuccessResponse>(
       (req, res) => subscriptionController.unsubscribe(req, res)
     )
   );

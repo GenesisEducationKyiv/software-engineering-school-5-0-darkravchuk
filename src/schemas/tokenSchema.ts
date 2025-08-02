@@ -1,7 +1,7 @@
 import Joi from 'joi';
-import {TokenRequest} from '../types/subscription/TokenRequest';
+import {ITokenRequest} from '../interfaces/subscription/ITokenRequest';
 
-export const tokenSchema = Joi.object<TokenRequest>({
+export const tokenSchema = Joi.object<ITokenRequest>({
   token: Joi.string().required().messages({
     'any.required': 'Token is required',
   }),

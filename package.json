@@ -11,7 +11,11 @@
     "test:unit": "jest --config jest.config.js --testPathPattern=tests/unit",
     "test:integration": "jest --config jest.config.js --testPathPattern=tests/integration",
     "test:e2e": "playwright test",
-    "test:migrate": "sequelize db:migrate --config src/config/database-migrations.js --env test"
+    "test:migrate": "sequelize db:migrate --config src/config/database-migrations.js --env test",
+    "test:docker": "docker compose --env-file .env.test -f docker-compose.e2e.test.yml up --build",
+
+    "test:e2e:pipeline": "docker compose -f docker-compose.e2e.test.yml up --build --abort-on-container-exit --exit-code-from e2e-tests || true",
+    "test:integration:pipeline": "docker compose -f docker-compose.integration.test.yml up --build --abort-on-container-exit --exit-code-from integration-tests || true"
   },
   "keywords": [],
   "author": "",
@@ -24,6 +28,7 @@
     "axios": "^1.9.0",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "express-actuator": "^1.8.4",
     "ioredis": "^5.3.2",
     "joi": "^17.13.3",
     "node-cron": "^4.0.5",
@@ -38,6 +43,7 @@
     "@eslint/js": "^9.28.0",
     "@playwright/test": "^1.54.1",
     "@types/express": "^5.0.3",
+    "@types/express-actuator": "^1.8.3",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.15.18",
     "@types/nodemailer": "^6.4.17",

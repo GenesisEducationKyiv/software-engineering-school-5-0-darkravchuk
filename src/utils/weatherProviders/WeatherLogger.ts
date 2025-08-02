@@ -1,48 +1,85 @@
-import fs from 'fs';
+import fs from 'fs/promises';
 import path from 'path';
+import { existsSync } from 'fs';
+import { ILogger, ILoggerConfig } from '../../interfaces/ILogger';
 
-export class WeatherLogger {
+export class WeatherLogger implements ILogger {
   private logFilePath: string;
+  private config: ILoggerConfig;
 
-  constructor() {
-    this.logFilePath = path.join(process.cwd(), 'logs', 'weather-providers.log');
+  constructor(config?: ILoggerConfig) {
+    this.config = {
+      level: 'info',
+      enableConsole: true,
+      enableFile: true,
+      ...config
+    };
+    
+    this.logFilePath = this.config.filePath || path.join(process.cwd(), 'logs', 'weather-providers.log');
     this.ensureLogDirectory();
   }
 
-  private ensureLogDirectory(): void {
+  private async ensureLogDirectory(): Promise<void> {
+    if (!this.config.enableFile) return;
+    
     const logDir = path.dirname(this.logFilePath);
-    if (!fs.existsSync(logDir)) {
-      fs.mkdirSync(logDir, { recursive: true });
+    try {
+      if (!existsSync(logDir)) {
+        await fs.mkdir(logDir, { recursive: true });
+      }
+    } catch (error) {
+      console.error('Failed to create log directory:', error);
+      throw error;
     }
   }
 
-  logResponse(providerName: string, city: string, response: any, success: boolean): void {
+  private shouldLog(level: string): boolean {
+    const levels = { debug: 0, info: 1, warn: 2, error: 3 };
+    return levels[level as keyof typeof levels] >= levels[this.config.level];
+  }
+
+  private async writeToFile(logLine: string): Promise<void> {
+    if (!this.config.enableFile) return;
+    
+    try {
+      await fs.appendFile(this.logFilePath, logLine);
+    } catch (error) {
+      console.error('Failed to write to weather log file:', error);
+      throw error;
+    }
+  }
+
+  private writeToConsole(logLine: string): void {
+    if (!this.config.enableConsole) return;
+    
+    console.log(logLine.trim());
+  }
+
+  async logResponse(providerName: string, city: string, response: any, success: boolean): Promise<void> {
+    if (!this.shouldLog('info')) return;
+    
     const timestamp = new Date().toISOString();
-    const logEntry = {
+    const logEntry = [
       timestamp,
-      provider: providerName,
+      providerName,
       city,
       success,
-      response: success ? response : { error: response.message || 'Unknown error' }
-    };
+      success ? response : { error: response.message || 'Unknown error' },
+    ];
 
     const logLine = `${timestamp} - ${providerName} - Response: ${JSON.stringify(logEntry)}\n`;
     
-    try {
-      fs.appendFileSync(this.logFilePath, logLine);
-    } catch (error) {
-      console.error('Failed to write to weather log file:', error);
-    }
+    await this.writeToFile(logLine);
+    this.writeToConsole(logLine);
   }
 
-  logAttempt(providerName: string, city: string): void {
+  async logAttempt(providerName: string, city: string): Promise<void> {
+    if (!this.shouldLog('debug')) return;
+    
     const timestamp = new Date().toISOString();
     const logLine = `${timestamp} - ${providerName} - Attempting to fetch weather for ${city}\n`;
-    
-    try {
-      fs.appendFileSync(this.logFilePath, logLine);
-    } catch (error) {
-      console.error('Failed to write to weather log file:', error);
-    }
+
+    await this.writeToFile(logLine);
+    this.writeToConsole(logLine);
   }
-} 
+}

@@ -1,9 +1,9 @@
 import { EmailSender } from '../../src/utils/EmailSender';
-import { IEmailProvider } from '../../src/types/IEmailProvider';
+import { IEmailProvider } from '../../src/interfaces/IEmailProvider';
 import * as emailBuilder from '../../src/utils/emailBuilder';
 import { EmailContent } from '../../src/utils/emailBuilder';
 
-jest.mock('../../src/types/IEmailProvider');
+jest.mock('../../src/interfaces/IEmailProvider');
 jest.mock('../../src/utils/emailBuilder');
 
 describe('EmailSender Unit Tests', () => {
@@ -54,9 +54,6 @@ describe('EmailSender Unit Tests', () => {
     emailSender = new EmailSender(mockEmailProvider);
   });
 
-  afterEach(() => {
-    delete process.env.SENDGRID_API_KEY;
-  });
 
   describe('constructor', () => {
     it('should configure the email provider with the API key', () => {
@@ -79,7 +76,7 @@ describe('EmailSender Unit Tests', () => {
   });
 
   describe('sendConfirmationEmail', () => {
-    it('should build and send a confirmation email', async () => {
+    it('should send a confirmation email', async () => {
       // Arrange
       const to = 'test@example.com';
       const confirmationToken = 'confirm-token';

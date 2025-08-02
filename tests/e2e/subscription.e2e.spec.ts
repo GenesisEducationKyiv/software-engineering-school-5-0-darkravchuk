@@ -1,8 +1,12 @@
 import { test, expect } from '@playwright/test';
 
+
+const port = process.env.PORT || 3000;
+const hostname = process.env.SERVER_HOST || 'localhost';
+
 test.describe('Subscription E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:3001/');
+    await page.goto(`http://${hostname}:${port}/`);
   });
 
   test('User can subscribe with valid data', async ({ page }) => {
