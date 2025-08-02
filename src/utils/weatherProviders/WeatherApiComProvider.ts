@@ -1,7 +1,8 @@
 import axios from 'axios';
-import {IWeatherProvider} from '../../interfaces/IWeatherProvider';
-import {HttpError, NotFoundError} from '../../errors/httpError';
-import {IWeatherData} from '../../interfaces/weather/IWeatherData';
+import { IWeatherProvider } from '../../interfaces/IWeatherProvider';
+import { NotFoundError } from '../../errors/httpError';
+import { IWeatherData } from '../../interfaces/weather/IWeatherData';
+import { WeatherProviderErrorHandler } from './WeatherProviderErrorHandler';
 
 export class WeatherApiComProvider implements IWeatherProvider {
   public readonly name = 'weatherapi.com';
@@ -23,13 +24,13 @@ export class WeatherApiComProvider implements IWeatherProvider {
   async getWeather(city: string): Promise<IWeatherData> {
     try {
       const url = `http://api.weatherapi.com/v1/current.json?key=${this.apiKey}&q=${city}`;
-      const response = await axios.get(url, {timeout: 10000});
+      const response = await axios.get(url, { timeout: 10000 });
 
       if (!response.data || !response.data.current) {
         throw new NotFoundError(`No weather data available for ${city}`);
       }
 
-      const {current} = response.data;
+      const { current } = response.data;
 
       return {
         temperature: current.temp_c,
@@ -38,14 +39,8 @@ export class WeatherApiComProvider implements IWeatherProvider {
         description: current.condition.text
       };
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 404) {
-          throw new NotFoundError(`Weather data for ${city} not found`);
-        } else {
-          throw new HttpError(500, `Failed to fetch weather for ${city}`);
-        }
-      }
-      throw new HttpError(500, `Unexpected error fetching weather for ${city}`);
+      // WeatherAPI.com doesn't return 401 for invalid keys, so disable auth error checking
+      WeatherProviderErrorHandler.handleErrorWithoutAuth(error, this.name, city);
     }
   }
 }

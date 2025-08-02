@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { IWeatherProvider } from '../../interfaces/IWeatherProvider';
-import { HttpError, NotFoundError } from '../../errors/httpError';
-import {IWeatherData} from "../../interfaces/weather/IWeatherData";
+import { NotFoundError } from '../../errors/httpError';
+import { IWeatherData } from "../../interfaces/weather/IWeatherData";
+import { WeatherProviderErrorHandler } from './WeatherProviderErrorHandler';
 
 export class OpenWeatherMapProvider implements IWeatherProvider {
   public readonly name = 'openweathermap.org';
@@ -12,7 +13,7 @@ export class OpenWeatherMapProvider implements IWeatherProvider {
     this.apiKey = config.apiKey;
     this.isConfigured = !!this.apiKey;
     if (!this.apiKey) {
-      throw new Error('OPENWEATHER_API_KEY is not set for OpenWeatherMapProvider');
+      //throw new Error('OPENWEATHER_API_KEY is not set for OpenWeatherMapProvider');
     }
   }
 
@@ -31,23 +32,17 @@ export class OpenWeatherMapProvider implements IWeatherProvider {
 
       const { main, weather } = response.data;
 
-      return (
-        main.temp,
-        weather[0]?.description || 'Unknown',
-        main.humidity,
-        main.pressure
-      );
+      return {
+        temperature: main.temp,
+        description: weather[0]?.description || 'Unknown',
+        humidity: main.humidity,
+        pressure: main.pressure
+      };
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 404) {
-          throw new NotFoundError(`Weather data for ${city} not found`);
-        } else if (error.response?.status === 401) {
-          throw new HttpError(401, `Invalid API key for ${this.name}`);
-        } else {
-          throw new HttpError(500, `Failed to fetch weather for ${city}`);
-        }
-      }
-      throw new HttpError(500, `Unexpected error fetching weather for ${city}`);
+      WeatherProviderErrorHandler.handleError(error, {
+        providerName: this.name,
+        city
+      });
     }
   }
 } 

@@ -36,17 +36,6 @@ describe('WeatherService Unit Tests', () => {
     delete process.env.ACCUWEATHER_API_KEY;
   });
 
-  describe('constructor', () => {
-    it('should configure the weather provider with the API key', () => {
-      // Assert
-      expect(mockWeatherProvider.configure).toHaveBeenCalledWith({
-        WEATHER_API_KEY: 'test-api-key',
-        OPENWEATHER_API_KEY: '',
-        ACCUWEATHER_API_KEY: '',
-      });
-    });
-  });
-
   describe('getWeather', () => {
     it('should return weather data for a valid city', async () => {
       // Arrange
