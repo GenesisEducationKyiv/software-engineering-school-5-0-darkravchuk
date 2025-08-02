@@ -55,8 +55,8 @@ export function initDependencies(): AppDependencies {
   // const weatherService = new WeatherService(weatherProviderChain);
 
   // Configure email provider
-  // Initialize Prometheus metrics
-  const metrics = new PrometheusMetrics();
+  // Initialize Prometheus metrics using singleton
+  const metrics = PrometheusMetrics.getInstance();
 
   // Initialize Redis cache with Prometheus metrics
   const cache = new RedisCache({

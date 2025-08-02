@@ -40,7 +40,7 @@ export class RedisCache {
       password: config.password,
       db: config.db || 0,
       maxRetriesPerRequest: 3,
-      lazyConnect: true,
+      lazyConnect: false,
     });
 
     this.ttl = config.ttl || 300; // Default 5 minutes

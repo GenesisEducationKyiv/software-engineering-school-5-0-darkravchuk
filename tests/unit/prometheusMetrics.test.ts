@@ -4,11 +4,19 @@ describe('PrometheusMetrics', () => {
   let metrics: PrometheusMetrics;
 
   beforeEach(() => {
-    metrics = new PrometheusMetrics();
+    // Reset the singleton instance before each test
+    PrometheusMetrics.resetInstance();
+    metrics = PrometheusMetrics.getInstance();
   });
 
   afterEach(() => {
+    // Reset metrics after each test
     metrics.resetMetrics();
+  });
+
+  afterAll(() => {
+    // Clean up the singleton instance after all tests
+    PrometheusMetrics.resetInstance();
   });
 
   describe('Application Metrics', () => {
@@ -65,7 +73,7 @@ describe('PrometheusMetrics', () => {
       metrics.recordCacheError('redis', 'connection_error');
       metrics.recordCacheError('redis', 'timeout_error');
       
-      const summary = await  metrics.getCacheMetricsSummary();
+      const summary = await metrics.getCacheMetricsSummary();
       expect(summary.errors).toBe(2);
     });
   });
@@ -137,6 +145,23 @@ describe('PrometheusMetrics', () => {
       
       expect(appSummary.totalRequests).toBe(0);
       expect(cacheSummary.hits).toBe(0);
+    });
+  });
+
+  describe('Singleton Pattern', () => {
+    it('should return the same instance', () => {
+      const instance1 = PrometheusMetrics.getInstance();
+      const instance2 = PrometheusMetrics.getInstance();
+      
+      expect(instance1).toBe(instance2);
+    });
+
+    it('should create new instance after reset', () => {
+      const instance1 = PrometheusMetrics.getInstance();
+      PrometheusMetrics.resetInstance();
+      const instance2 = PrometheusMetrics.getInstance();
+      
+      expect(instance1).not.toBe(instance2);
     });
   });
 }); 

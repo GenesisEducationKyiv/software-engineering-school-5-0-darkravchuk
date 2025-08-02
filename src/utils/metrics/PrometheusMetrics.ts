@@ -1,4 +1,4 @@
-import {Counter, Gauge, Histogram, Registry} from 'prom-client';
+import { Counter, Gauge, Histogram, Registry } from 'prom-client';
 
 export interface CacheMetrics {
   hits: number;
@@ -22,53 +22,81 @@ enum MetricLabels {
 const HISTOGRAM_BUCKETS = [0.1, 0.5, 1, 2, 5, 10];
 
 export class PrometheusMetrics {
+  private static instance: PrometheusMetrics | null = null;
   private registry: Registry;
+  private isInitialized: boolean = false;
 
   // Application metrics
-  public totalRequests: Counter;
-  public successfulRequests: Counter;
-  public failedRequests: Counter;
-  public responseTime: Histogram;
+  public totalRequests!: Counter;
+  public successfulRequests!: Counter;
+  public failedRequests!: Counter;
+  public responseTime!: Histogram;
+  public responseTimeSum!: Counter; // Track sum for average calculation
+  public responseTimeCount!: Counter; // Track count for average calculation
 
   // Cache metrics
-  public cacheHits: Counter;
-  public cacheMisses: Counter;
-  public cacheSets: Counter;
-  public cacheDeletes: Counter;
-  public cacheErrors: Counter;
-  public cacheHitRate: Gauge;
+  public cacheHits!: Counter;
+  public cacheMisses!: Counter;
+  public cacheSets!: Counter;
+  public cacheDeletes!: Counter;
+  public cacheErrors!: Counter;
+  public cacheHitRate!: Gauge;
 
   // Weather provider metrics
-  public providerRequests: Counter;
-  public providerSuccesses: Counter;
-  public providerFailures: Counter;
-  public providerResponseTime: Histogram;
+  public providerRequests!: Counter;
+  public providerSuccesses!: Counter;
+  public providerFailures!: Counter;
+  public providerResponseTime!: Histogram;
 
   // System metrics
-  public uptime: Gauge;
-  public activeConnections: Gauge;
-  public memoryUsage: Gauge;
+  public uptime!: Gauge;
+  public activeConnections!: Gauge;
+  public memoryUsage!: Gauge;
 
-  constructor() {
+  private constructor() {
     this.registry = new Registry();
+    this.initializeMetrics();
+  }
+
+  public static getInstance(): PrometheusMetrics {
+    if (!PrometheusMetrics.instance) {
+      PrometheusMetrics.instance = new PrometheusMetrics();
+    }
+    return PrometheusMetrics.instance;
+  }
+
+  public static resetInstance(): void {
+    if (PrometheusMetrics.instance) {
+      PrometheusMetrics.instance.cleanup();
+      PrometheusMetrics.instance = null;
+    }
+  }
+
+  private initializeMetrics(): void {
+    if (this.isInitialized) {
+      return;
+    }
 
     // Application metrics
     this.totalRequests = new Counter({
       name: 'weather_app_requests_total',
       help: 'Total number of weather requests',
       labelNames: [MetricLabels.METHOD, MetricLabels.ENDPOINT],
+      registers: [this.registry],
     });
 
     this.successfulRequests = new Counter({
       name: 'weather_app_successful_requests_total',
       help: 'Total number of successful weather requests',
       labelNames: [MetricLabels.METHOD, MetricLabels.ENDPOINT],
+      registers: [this.registry],
     });
 
     this.failedRequests = new Counter({
       name: 'weather_app_failed_requests_total',
       help: 'Total number of failed weather requests',
       labelNames: [MetricLabels.METHOD, MetricLabels.ENDPOINT, MetricLabels.ERROR_TYPE],
+      registers: [this.registry],
     });
 
     this.responseTime = new Histogram({
@@ -76,6 +104,21 @@ export class PrometheusMetrics {
       help: 'Response time in seconds',
       labelNames: [MetricLabels.METHOD, MetricLabels.ENDPOINT],
       buckets: HISTOGRAM_BUCKETS,
+      registers: [this.registry],
+    });
+
+    this.responseTimeSum = new Counter({
+      name: 'weather_app_response_time_sum_ms',
+      help: 'Sum of response times in milliseconds',
+      labelNames: [MetricLabels.METHOD, MetricLabels.ENDPOINT],
+      registers: [this.registry],
+    });
+
+    this.responseTimeCount = new Counter({
+      name: 'weather_app_response_time_count',
+      help: 'Count of response times',
+      labelNames: [MetricLabels.METHOD, MetricLabels.ENDPOINT],
+      registers: [this.registry],
     });
 
     // Cache metrics
@@ -83,36 +126,42 @@ export class PrometheusMetrics {
       name: 'weather_cache_hits_total',
       help: 'Total number of cache hits',
       labelNames: [MetricLabels.CACHE_TYPE],
+      registers: [this.registry],
     });
 
     this.cacheMisses = new Counter({
       name: 'weather_cache_misses_total',
       help: 'Total number of cache misses',
       labelNames: [MetricLabels.CACHE_TYPE],
+      registers: [this.registry],
     });
 
     this.cacheSets = new Counter({
       name: 'weather_cache_sets_total',
       help: 'Total number of cache sets',
       labelNames: [MetricLabels.CACHE_TYPE],
+      registers: [this.registry],
     });
 
     this.cacheDeletes = new Counter({
       name: 'weather_cache_deletes_total',
       help: 'Total number of cache deletes',
       labelNames: [MetricLabels.CACHE_TYPE],
+      registers: [this.registry],
     });
 
     this.cacheErrors = new Counter({
       name: 'weather_cache_errors_total',
       help: 'Total number of cache errors',
       labelNames: [MetricLabels.CACHE_TYPE, MetricLabels.ERROR_TYPE],
+      registers: [this.registry],
     });
 
     this.cacheHitRate = new Gauge({
       name: 'weather_cache_hit_rate',
       help: 'Cache hit rate percentage',
       labelNames: [MetricLabels.CACHE_TYPE],
+      registers: [this.registry],
     });
 
     // Weather provider metrics
@@ -120,18 +169,21 @@ export class PrometheusMetrics {
       name: 'weather_provider_requests_total',
       help: 'Total number of weather provider requests',
       labelNames: [MetricLabels.PROVIDER],
+      registers: [this.registry],
     });
 
     this.providerSuccesses = new Counter({
       name: 'weather_provider_successes_total',
       help: 'Total number of successful weather provider requests',
       labelNames: [MetricLabels.PROVIDER],
+      registers: [this.registry],
     });
 
     this.providerFailures = new Counter({
       name: 'weather_provider_failures_total',
       help: 'Total number of failed weather provider requests',
       labelNames: [MetricLabels.PROVIDER, MetricLabels.ERROR_TYPE],
+      registers: [this.registry],
     });
 
     this.providerResponseTime = new Histogram({
@@ -139,46 +191,38 @@ export class PrometheusMetrics {
       help: 'Weather provider response time in seconds',
       labelNames: [MetricLabels.PROVIDER],
       buckets: HISTOGRAM_BUCKETS,
+      registers: [this.registry],
     });
 
     // System metrics
     this.uptime = new Gauge({
       name: 'weather_app_uptime_seconds',
       help: 'Application uptime in seconds',
+      registers: [this.registry],
     });
 
     this.activeConnections = new Gauge({
       name: 'weather_app_active_connections',
       help: 'Number of active connections',
+      registers: [this.registry],
     });
 
     this.memoryUsage = new Gauge({
       name: 'weather_app_memory_usage_bytes',
       help: 'Memory usage in bytes',
       labelNames: [MetricLabels.TYPE],
+      registers: [this.registry],
     });
 
-    // Register all metrics
-    this.registry.registerMetric(this.totalRequests);
-    this.registry.registerMetric(this.successfulRequests);
-    this.registry.registerMetric(this.failedRequests);
-    this.registry.registerMetric(this.responseTime);
-    this.registry.registerMetric(this.cacheHits);
-    this.registry.registerMetric(this.cacheMisses);
-    this.registry.registerMetric(this.cacheSets);
-    this.registry.registerMetric(this.cacheDeletes);
-    this.registry.registerMetric(this.cacheErrors);
-    this.registry.registerMetric(this.cacheHitRate);
-    this.registry.registerMetric(this.providerRequests);
-    this.registry.registerMetric(this.providerSuccesses);
-    this.registry.registerMetric(this.providerFailures);
-    this.registry.registerMetric(this.providerResponseTime);
-    this.registry.registerMetric(this.uptime);
-    this.registry.registerMetric(this.activeConnections);
-    this.registry.registerMetric(this.memoryUsage);
+    this.isInitialized = true;
 
     // Start system metrics collection
     this.startSystemMetricsCollection();
+  }
+
+  private cleanup(): void {
+    this.registry.clear();
+    this.isInitialized = false;
   }
 
   // Application metrics methods
@@ -192,6 +236,8 @@ export class PrometheusMetrics {
     }
 
     this.responseTime.observe({ [MetricLabels.METHOD]: method, [MetricLabels.ENDPOINT]: endpoint }, responseTimeMs / 1000);
+    this.responseTimeSum.inc({ [MetricLabels.METHOD]: method, [MetricLabels.ENDPOINT]: endpoint }, responseTimeMs);
+    this.responseTimeCount.inc({ [MetricLabels.METHOD]: method, [MetricLabels.ENDPOINT]: endpoint });
   }
 
   // Cache metrics methods
@@ -268,6 +314,26 @@ export class PrometheusMetrics {
 
   // Reset metrics (useful for testing)
   resetMetrics(): void {
+    // Reset all counters and gauges to zero
+    this.totalRequests.reset();
+    this.successfulRequests.reset();
+    this.failedRequests.reset();
+    this.responseTimeSum.reset();
+    this.responseTimeCount.reset();
+    this.cacheHits.reset();
+    this.cacheMisses.reset();
+    this.cacheSets.reset();
+    this.cacheDeletes.reset();
+    this.cacheErrors.reset();
+    this.cacheHitRate.reset();
+    this.providerRequests.reset();
+    this.providerSuccesses.reset();
+    this.providerFailures.reset();
+    this.uptime.reset();
+    this.activeConnections.reset();
+    this.memoryUsage.reset();
+    
+    // Clear the registry as well
     this.registry.clear();
   }
 
@@ -285,7 +351,9 @@ export class PrometheusMetrics {
       const missesValue = misses.values && misses.values.length > 0 ? misses.values[0].value : 0;
       const setsValue = sets.values && sets.values.length > 0 ? sets.values[0].value : 0;
       const deletesValue = deletes.values && deletes.values.length > 0 ? deletes.values[0].value : 0;
-      const errorsValue = errors.values && errors.values.length > 0 ? errors.values[0].value : 0;
+      
+      // Sum all error types since they're recorded with different labels
+      const errorsValue = errors.values ? errors.values.reduce((sum, val) => sum + val.value, 0) : 0;
 
       return {
         hits: hitsValue,
@@ -312,19 +380,24 @@ export class PrometheusMetrics {
       const totalReqs = await this.totalRequests.get();
       const successfulReqs = await this.successfulRequests.get();
       const failedReqs = await this.failedRequests.get();
-      const avgResponseTime = await this.responseTime.get();
+      const responseTimeSum = await this.responseTimeSum.get();
+      const responseTimeCount = await this.responseTimeCount.get();
 
       // Extract values from the metric objects
       const totalReqsValue = totalReqs.values && totalReqs.values.length > 0 ? totalReqs.values[0].value : 0;
       const successfulReqsValue = successfulReqs.values && successfulReqs.values.length > 0 ? successfulReqs.values[0].value : 0;
       const failedReqsValue = failedReqs.values && failedReqs.values.length > 0 ? failedReqs.values[0].value : 0;
-      const avgResponseTimeValue = avgResponseTime.values && avgResponseTime.values.length > 0 ? avgResponseTime.values[0].value : 0;
+      
+      // Calculate average response time from sum and count
+      const sumValue = responseTimeSum.values && responseTimeSum.values.length > 0 ? responseTimeSum.values[0].value : 0;
+      const countValue = responseTimeCount.values && responseTimeCount.values.length > 0 ? responseTimeCount.values[0].value : 0;
+      const averageResponseTime = countValue > 0 ? sumValue / countValue : 0;
 
       return {
         totalRequests: totalReqsValue,
         successfulRequests: successfulReqsValue,
         failedRequests: failedReqsValue,
-        averageResponseTime: avgResponseTimeValue,
+        averageResponseTime: averageResponseTime,
       };
     } catch (error) {
       console.error('Error getting application metrics summary:', error);
