@@ -25,4 +25,24 @@ export class WeatherController {
       pressure: weatherData.pressure
     });
   }
+
+  async getProviderStatus(req: Request, res: Response) {
+    try {
+      // Access the provider chain to get status
+      const providerChain = (this.weatherService as any).weatherProvider;
+      if (providerChain && typeof providerChain.getProviderStatus === 'function') {
+        const status = providerChain.getProviderStatus();
+        res.status(200).json({ providers: status });
+      } else {
+        res.status(200).json({
+          providers: [{
+            name: 'weather-provider',
+            available: true
+          }]
+        });
+      }
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get provider status' });
+    }
+  }
 }

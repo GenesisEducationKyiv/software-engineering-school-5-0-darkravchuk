@@ -15,5 +15,13 @@ export default (weatherController: WeatherController) => {
       (req, res) => weatherController.getWeather(req, res)
     )
   );
+
+  router.get(
+    '/providers/status',
+    handleError<{}, { providers: Array<{ name: string; available: boolean }> }>(
+      (req, res) => weatherController.getProviderStatus(req, res)
+    )
+  );
+
   return router;
 };

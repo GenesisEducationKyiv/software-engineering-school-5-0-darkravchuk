@@ -3,37 +3,63 @@ import { EmailSender } from './utils/EmailSender';
 import SubscriptionSubject from './utils/subscriptionSubject';
 import { SendGridProvider } from './utils/emailProviders/SendGridProvider';
 import { WeatherApiComProvider } from './utils/weatherProviders/WeatherApiComProvider';
+import { OpenWeatherMapProvider } from './utils/weatherProviders/OpenWeatherMapProvider';
+import { AccuWeatherProvider } from './utils/weatherProviders/AccuWeatherProvider';
+import { WeatherProviderChain } from './utils/weatherProviders/WeatherProviderChain';
+import { WeatherLogger } from './utils/weatherProviders/WeatherLogger';
 import {WeatherService} from './services/weatherService';
 import {WeatherController} from './controllers/weatherController';
 import SubscriptionService from './services/subscriptionService';
 import {SubscriptionController} from './controllers/subscriptionController';
+import { appConfig } from './config/AppConfig';
 
 export interface AppDependencies {
-    weatherService: WeatherService;
     weatherController: WeatherController;
     subscriptionService: SubscriptionService;
     subscriptionController: SubscriptionController;
-    emailSender: EmailSender;
-    subscriptionSubject: SubscriptionSubject;
 }
 
 export function initDependencies(): AppDependencies {
   const subscriptionRepository = new SequelizeSubscriptionRepository();
-  const weatherProvider = new WeatherApiComProvider();
-  const weatherService = new WeatherService(weatherProvider);
+  
+  // Configure logger with centralized config
+  const loggerConfig = appConfig.getLoggerConfig();
+  const weatherLogger = new WeatherLogger(loggerConfig);
+  
+  // Configure weather providers with centralized config
+  const weatherConfig = appConfig.getWeatherConfig();
+  const emailConfig = appConfig.getEmailConfig();
+  
+  const weatherProviderChain = new WeatherProviderChain(weatherLogger);
+  
+  // Add and configure weather providers
+  const weatherApiProvider = new WeatherApiComProvider();
+  weatherApiProvider.configure({ apiKey: weatherConfig.weatherApiKey });
+  weatherProviderChain.addProvider(weatherApiProvider);
+  
+  const openWeatherProvider = new OpenWeatherMapProvider();
+  openWeatherProvider.configure({ apiKey: weatherConfig.openWeatherApiKey });
+  weatherProviderChain.addProvider(openWeatherProvider);
+  
+  const accuWeatherProvider = new AccuWeatherProvider();
+  accuWeatherProvider.configure({ apiKey: weatherConfig.accuWeatherApiKey });
+  weatherProviderChain.addProvider(accuWeatherProvider);
+  
+  const weatherService = new WeatherService(weatherProviderChain);
+  
+  // Configure email provider
   const emailProvider = new SendGridProvider();
+  emailProvider.configure({ apiKey: emailConfig.sendGridApiKey });
   const emailSender = new EmailSender(emailProvider);
+  
   const subscriptionSubject = new SubscriptionSubject(weatherService, emailSender, subscriptionRepository);
   const subscriptionService = new SubscriptionService(subscriptionRepository, emailSender, subscriptionSubject);
   const weatherController = new WeatherController(weatherService);
   const subscriptionController = new SubscriptionController(subscriptionService);
 
   return {
-    weatherService,
     weatherController,
     subscriptionService,
-    subscriptionController,
-    emailSender,
-    subscriptionSubject
+    subscriptionController
   };
 }

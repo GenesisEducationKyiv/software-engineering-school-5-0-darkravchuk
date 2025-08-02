@@ -4,8 +4,8 @@ import { NotFoundError } from '../../errors/httpError';
 import { IWeatherData } from '../../interfaces/weather/IWeatherData';
 import { WeatherProviderErrorHandler } from './WeatherProviderErrorHandler';
 
-export class WeatherApiComProvider implements IWeatherProvider {
-  public readonly name = 'weatherapi.com';
+export class OpenWeatherMapProvider implements IWeatherProvider {
+  public readonly name = 'openweathermap.org';
   private apiKey: string = '';
   private isConfigured: boolean = false;
 
@@ -13,7 +13,7 @@ export class WeatherApiComProvider implements IWeatherProvider {
     this.apiKey = config.apiKey;
     this.isConfigured = !!this.apiKey;
     if (!this.apiKey) {
-      throw new Error('WEATHER_API_KEY is not set for WeatherApiComProvider');
+      //throw new Error('OPENWEATHER_API_KEY is not set for OpenWeatherMapProvider');
     }
   }
 
@@ -23,24 +23,26 @@ export class WeatherApiComProvider implements IWeatherProvider {
 
   async getWeather(city: string): Promise<IWeatherData> {
     try {
-      const url = `http://api.weatherapi.com/v1/current.json?key=${this.apiKey}&q=${city}`;
+      const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${this.apiKey}&units=metric`;
       const response = await axios.get(url, { timeout: 10000 });
 
-      if (!response.data || !response.data.current) {
+      if (!response.data || !response.data.main) {
         throw new NotFoundError(`No weather data available for ${city}`);
       }
 
-      const { current } = response.data;
+      const { main, weather } = response.data;
 
       return {
-        temperature: current.temp_c,
-        humidity: current.humidity,
-        pressure: current.pressure_mb,
-        description: current.condition.text
+        temperature: main.temp,
+        description: weather[0]?.description || 'Unknown',
+        humidity: main.humidity,
+        pressure: main.pressure
       };
     } catch (error) {
-      // WeatherAPI.com doesn't return 401 for invalid keys, so disable auth error checking
-      WeatherProviderErrorHandler.handleErrorWithoutAuth(error, this.name, city);
+      WeatherProviderErrorHandler.handleError(error, {
+        providerName: this.name,
+        city
+      });
     }
   }
-}
+} 
