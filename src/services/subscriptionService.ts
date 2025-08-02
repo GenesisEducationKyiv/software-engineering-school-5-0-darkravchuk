@@ -1,7 +1,7 @@
 import { v4 } from 'uuid';
-import { ISubscriptionRepository, SubscriptionCreateData } from '../types/ISubscriptionRepository';
-import { IEmailSender } from '../types/IEmailSender';
-import { ISubscriptionSubject } from '../types/ISubscriptionSubject';
+import { ISubscriptionRepository, SubscriptionCreateData } from '../interfaces/ISubscriptionRepository';
+import { IEmailSender } from '../interfaces/IEmailSender';
+import { ISubscriptionSubject } from '../interfaces/ISubscriptionSubject';
 import EmailObserver from '../utils/emailObserver';
 import { ISubscriptionService } from './SubscriptionService.interface';
 import { NotFoundError, ConflictError, WeatherUpdateError } from '../errors/httpError';

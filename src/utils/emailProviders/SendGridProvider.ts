@@ -1,5 +1,5 @@
 import sgMail from '@sendgrid/mail';
-import { IEmailProvider } from '../../types/IEmailProvider';
+import {IEmailProvider} from '../../interfaces/IEmailProvider';
 
 export class SendGridProvider implements IEmailProvider {
   configure(config: { apiKey: string }) {
@@ -14,6 +14,9 @@ export class SendGridProvider implements IEmailProvider {
         html: string;
     }): Promise<any> {
     try {
+      if (process.env.NODE_ENV === 'e2e_test')
+        return;
+
       const response = await sgMail.send(msg);
       console.log(`Email sent to ${msg.to}`, response);
       return response;

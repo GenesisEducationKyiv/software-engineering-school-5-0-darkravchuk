@@ -1,4 +1,5 @@
 import * as dotenv from 'dotenv';
+import actuator from 'express-actuator';
 dotenv.config();
 
 import express, { Request, Response } from 'express';
@@ -10,11 +11,9 @@ import {initDependencies} from './initApp';
 import {scheduleWeatherUpdates} from './schedulers/scheduleWeatherUpdates';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-const DOMAIN = process.env.DOMAIN || 'http://localhost';
-
 const { weatherController, subscriptionController, subscriptionService } = initDependencies();
 
+app.use(actuator());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 

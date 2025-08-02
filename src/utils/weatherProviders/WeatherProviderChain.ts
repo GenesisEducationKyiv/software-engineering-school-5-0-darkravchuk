@@ -1,7 +1,7 @@
-import { IWeatherProvider } from '../../types/IWeatherProvider';
-import { WeatherDataDTO } from '../../services/WeatherDataDTO';
+import { IWeatherProvider } from '../../interfaces/IWeatherProvider';
 import { WeatherLogger } from './WeatherLogger';
 import { HttpError } from '../../errors/httpError';
+import {IWeatherData} from "../../interfaces/weather/IWeatherData";
 
 export class WeatherProviderChain implements IWeatherProvider {
   public readonly name = 'weather-provider-chain';
@@ -36,7 +36,7 @@ export class WeatherProviderChain implements IWeatherProvider {
     return this.providers.some(provider => provider.isAvailable());
   }
 
-  async getWeather(city: string): Promise<WeatherDataDTO> {
+  async getWeather(city: string): Promise<IWeatherData> {
     const availableProviders = this.providers.filter(provider => provider.isAvailable());
     
     if (availableProviders.length === 0) {

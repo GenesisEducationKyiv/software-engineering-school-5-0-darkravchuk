@@ -8,7 +8,7 @@ export async function scheduleWeatherUpdates(subscriptionService: SubscriptionSe
       subscriptionService.sendWeatherUpdates(frequency).catch(err =>
         console.error(`[ERROR] Cron job failed for ${frequency}:`, err)
       );
-    }, { timezone: 'Europe/Kyiv' });
+    }, { timezone: 'UTC' });
   };
 
   scheduleJob('0 * * * *', 'hourly');

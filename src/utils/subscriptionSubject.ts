@@ -1,16 +1,16 @@
-import { Observer } from '../types/Observer';
+import { IObserver } from '../interfaces/IObserver';
 import EmailObserver from './emailObserver';
 import { IWeatherService } from '../services/WeatherService.interface';
-import { IEmailSender } from '../types/IEmailSender';
-import { ISubscriptionSubject } from '../types/ISubscriptionSubject';
-import { ISubscriptionRepository } from '../types/ISubscriptionRepository';
+import { IEmailSender } from '../interfaces/IEmailSender';
+import { ISubscriptionSubject } from '../interfaces/ISubscriptionSubject';
+import { ISubscriptionRepository } from '../interfaces/ISubscriptionRepository';
 import sequelize from '../config/database';
 
 class SubscriptionSubject implements ISubscriptionSubject {
   private weatherService: IWeatherService;
   private readonly emailSender: IEmailSender;
   private subscriptionRepository: ISubscriptionRepository;
-  private observers: { observer: Observer; city: string; frequency: 'hourly' | 'daily' }[] = [];
+  private observers: { observer: IObserver; city: string; frequency: 'hourly' | 'daily' }[] = [];
 
   constructor(
     weatherService: IWeatherService,
@@ -37,7 +37,7 @@ class SubscriptionSubject implements ISubscriptionSubject {
     }
   }
 
-  async registerObserver(observer: Observer, city: string, frequency: 'hourly' | 'daily') {
+  async registerObserver(observer: IObserver, city: string, frequency: 'hourly' | 'daily') {
     const subscription = await this.subscriptionRepository.findOne({
       email: (observer as EmailObserver).getEmail(),
       city,
@@ -64,7 +64,7 @@ class SubscriptionSubject implements ISubscriptionSubject {
     }
   }
 
-  async removeObserver(observer: Observer, city: string) {
+  async removeObserver(observer: IObserver, city: string) {
     await this.syncWithDB();
 
     this.observers = this.observers.filter(obs => {

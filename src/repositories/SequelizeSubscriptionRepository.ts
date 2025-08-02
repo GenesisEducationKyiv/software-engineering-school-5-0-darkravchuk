@@ -1,5 +1,5 @@
 import Subscription from '../models/Subscription';
-import { ISubscriptionRepository, SubscriptionCreateData } from '../types/ISubscriptionRepository';
+import { ISubscriptionRepository, SubscriptionCreateData } from '../interfaces/ISubscriptionRepository';
 
 class SequelizeSubscriptionRepository implements ISubscriptionRepository {
   async findByEmail(email: string): Promise<Subscription | null> {

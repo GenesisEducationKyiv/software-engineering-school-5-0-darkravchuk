@@ -1,7 +1,7 @@
 import axios from 'axios';
-import { IWeatherProvider } from '../../types/IWeatherProvider';
-import { WeatherDataDTO } from '../../services/WeatherDataDTO';
+import { IWeatherProvider } from '../../interfaces/IWeatherProvider';
 import { HttpError, NotFoundError } from '../../errors/httpError';
+import {IWeatherData} from "../../interfaces/weather/IWeatherData";
 
 export class AccuWeatherProvider implements IWeatherProvider {
   public readonly name = 'accuweather.com';
@@ -20,7 +20,7 @@ export class AccuWeatherProvider implements IWeatherProvider {
     return this.isConfigured;
   }
 
-  async getWeather(city: string): Promise<WeatherDataDTO> {
+  async getWeather(city: string): Promise<IWeatherData> {
     try {
       const locationUrl = `http://dataservice.accuweather.com/locations/v1/cities/search?apikey=${this.apiKey}&q=${city}`;
       const locationResponse = await axios.get(locationUrl, { timeout: 10000 });
@@ -40,7 +40,7 @@ export class AccuWeatherProvider implements IWeatherProvider {
 
       const weather = weatherResponse.data[0];
 
-      return new WeatherDataDTO(
+      return(
         weather.Temperature.Metric.Value,
         weather.WeatherText,
         weather.RelativeHumidity,

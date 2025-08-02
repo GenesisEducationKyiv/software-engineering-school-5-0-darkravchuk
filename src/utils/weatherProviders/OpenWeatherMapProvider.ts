@@ -1,7 +1,7 @@
 import axios from 'axios';
-import { IWeatherProvider } from '../../types/IWeatherProvider';
-import { WeatherDataDTO } from '../../services/WeatherDataDTO';
+import { IWeatherProvider } from '../../interfaces/IWeatherProvider';
 import { HttpError, NotFoundError } from '../../errors/httpError';
+import {IWeatherData} from "../../interfaces/weather/IWeatherData";
 
 export class OpenWeatherMapProvider implements IWeatherProvider {
   public readonly name = 'openweathermap.org';
@@ -20,7 +20,7 @@ export class OpenWeatherMapProvider implements IWeatherProvider {
     return this.isConfigured;
   }
 
-  async getWeather(city: string): Promise<WeatherDataDTO> {
+  async getWeather(city: string): Promise<IWeatherData> {
     try {
       const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${this.apiKey}&units=metric`;
       const response = await axios.get(url, { timeout: 10000 });
@@ -31,7 +31,7 @@ export class OpenWeatherMapProvider implements IWeatherProvider {
 
       const { main, weather } = response.data;
 
-      return new WeatherDataDTO(
+      return (
         main.temp,
         weather[0]?.description || 'Unknown',
         main.humidity,

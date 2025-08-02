@@ -1,4 +1,4 @@
-export interface Subscription {
+export interface ISubscription {
     id: number;
     email: string;
     city: string;
