@@ -1,7 +1,13 @@
 # Created by https://www.toptal.com/developers/gitignore/api/webstorm,webstorm+all,macos,node
 # Edit at https://www.toptal.com/developers/gitignore?templates=webstorm,webstorm+all,macos,node
-
+CACHING_SYSTEM.md
+PROMETHEUS_METRICS.md
+WEATHER_PROVIDERS.md
+dump.rdb
+playwright-report/
+test-results/
 ### macOS ###
+
 # General
 .DS_Store
 .AppleDouble
