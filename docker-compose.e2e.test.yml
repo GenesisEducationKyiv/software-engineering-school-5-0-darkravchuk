@@ -1,0 +1,85 @@
+services:
+  db:
+    image: postgres:14
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d weather_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - test-network
+
+  backend:
+    container_name: backend
+    hostname: backend
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: e2e_test
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DOMAIN: ${DOMAIN}
+      WEATHER_API_KEY: ${WEATHER_API_KEY}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
+      POSTMARK_API_KEY: ${POSTMARK_API_KEY}
+      PORT: ${PORT}
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "npm run migrate && npm run start"
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  e2e-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile_e2e
+    ports:
+      - "3002:3002"
+    environment:
+      SERVER_HOST: ${SERVER_HOST}
+      PORT: ${PORT}
+    depends_on:
+      backend:
+        condition: service_started
+    command: sh -c "npm run test:e2e"
+    networks:
+      - test-network
+
+  db-check:
+    image: postgres:14
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - PGPASSWORD=${DB_PASSWORD}
+    depends_on:
+      backend:
+        condition: service_completed_successfully
+    command: psql -h db -U ${DB_USER} -d postgres -c "SELECT datname FROM pg_database;"
+    networks:
+      - test-network
+
+networks:
+  test-network:
+    driver: bridge

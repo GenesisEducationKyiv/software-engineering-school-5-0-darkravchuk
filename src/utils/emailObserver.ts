@@ -1,53 +1,30 @@
-import { MailService } from '@sendgrid/mail';
-import { Observer, WeatherData } from '../types';
+import { IObserver } from '../interfaces/IObserver';
+import { IEmailSender } from '../interfaces/IEmailSender';
+import {IWeatherData} from '../interfaces/weather/IWeatherData';
 
-const sgMail = new MailService();
-sgMail.setApiKey(process.env.SENDGRID_API_KEY || '');
+export default class EmailObserver implements IObserver {
+  constructor(
+      private email: string,
+      private unsubscribeToken: string,
+      private emailSender: IEmailSender,
+  ) {}
 
-class EmailObserver implements Observer {
-  private email: string;
-  private unsubscribeToken: string;
-
-  constructor(email: string, unsubscribeToken: string) {
-    this.email = email;
-    this.unsubscribeToken = unsubscribeToken;
+  async update(city: string, weather: IWeatherData): Promise<void> {
+    try {
+      await this.emailSender.sendWeatherUpdateEmail(this.email, city, this.unsubscribeToken, weather);
+      console.log(`Weather update email sent to ${this.email}`);
+    } catch (error) {
+      console.error('Error sending weather update email:', error);
+      throw new Error('Failed to send weather update email');
+    }
   }
 
   getEmail(): string {
     return this.email;
   }
 
-  equals(other: EmailObserver): boolean {
-    return this.email === other.email;
-  }
-
-  async update(city: string, weather: WeatherData): Promise<void> {
-    const domain = process.env.DOMAIN || '';
-    const unsubscribeLink = `${domain}/unsubscribe/${this.unsubscribeToken}`;
-    const msg = {
-      from: {
-        email: process.env.EMAIL || '',
-        name: 'Weather Updates'
-      },
-      to: this.email,
-      subject: `Weather Update for ${city}`,
-      text: `Weather in ${city}: ${weather.temperature}°C, ${weather.description}, Humidity: ${weather.humidity}%\n\nTo unsubscribe, click here: ${unsubscribeLink}`,
-      html: `
-                <h2>Weather Update for ${city}</h2>
-                <p>Temperature: ${weather.temperature}°C</p>
-                <p>Description: ${weather.description}</p>
-                <p>Humidity: ${weather.humidity}%</p>
-                <p><a href="${unsubscribeLink}">Unsubscribe</a></p>
-            `,
-    };
-
-    try {
-      const response = await sgMail.send(msg);
-      console.log(`Weather update email sent to ${this.email} with status:`, response[0].statusCode);
-    } catch (error) {
-      throw new Error('Failed to send weather update email');
-    }
+  equals(other: IObserver): boolean {
+    if (!(other instanceof EmailObserver)) return false;
+    return this.email === other.email && this.unsubscribeToken === other.unsubscribeToken;
   }
 }
-
-export default EmailObserver;
