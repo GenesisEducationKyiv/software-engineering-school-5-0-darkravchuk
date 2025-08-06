@@ -33,7 +33,7 @@ export class WeatherUpdateHandler implements MessageHandler<WeatherUpdateEvent> 
           humidity: event.humidity,
           windSpeed: event.windSpeed,
           timestamp: new Date(event.timestamp).toLocaleString(),
-          unsubscribeLink: `http://localhost:3001/api/subscriptions/unsubscribe/example-id`
+          unsubscribeLink: 'http://localhost:3001/api/subscriptions/unsubscribe/example-id'
         },
         priority: 'normal'
       });

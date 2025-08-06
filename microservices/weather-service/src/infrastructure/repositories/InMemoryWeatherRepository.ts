@@ -160,7 +160,7 @@ export class InMemoryWeatherRepository implements IWeatherRepository {
     currentWeatherEntries: number;
     forecastEntries: number;
     totalMemoryUsage: string;
-  } {
+    } {
     return {
       currentWeatherEntries: this.currentWeatherCache.size,
       forecastEntries: this.forecastCache.size,

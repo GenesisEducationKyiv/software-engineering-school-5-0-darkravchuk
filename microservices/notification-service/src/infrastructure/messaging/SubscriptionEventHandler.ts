@@ -91,15 +91,15 @@ export class SubscriptionEventHandler implements MessageHandler<SubscriptionCrea
     const { temperature, condition, humidity } = weatherData;
     
     if (temperature > 25) {
-      return "It's going to be a warm day! Perfect for outdoor activities.";
+      return 'It\'s going to be a warm day! Perfect for outdoor activities.';
     } else if (temperature < 5) {
-      return "Bundle up! It's going to be quite cold today.";
+      return 'Bundle up! It\'s going to be quite cold today.';
     } else if (humidity > 80) {
-      return "High humidity expected. You might feel muggy today.";
+      return 'High humidity expected. You might feel muggy today.';
     } else if (condition.toLowerCase().includes('rain')) {
-      return "Don't forget your umbrella! Rain is expected today.";
+      return 'Don\'t forget your umbrella! Rain is expected today.';
     } else {
-      return "Have a wonderful day!";
+      return 'Have a wonderful day!';
     }
   }
 }

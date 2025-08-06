@@ -181,7 +181,7 @@ export class WeatherForecast {
     rainDays: number;
     extremeWeatherDays: number;
     mostCommonCondition: string;
-  } {
+    } {
     const avg = this.getAverageTemperature();
     const rainDays = this._periods.filter(p => p.precipitationChance > 30).length;
     const extremeDays = this.getExtremeWeatherDays().length;

@@ -9,18 +9,18 @@ export class RabbitMQEventPublisherAdapter implements IEventPublisher {
 
   async publish(event: DomainEvent): Promise<void> {
     switch (event.eventType) {
-      case 'SubscriptionCreated':
-        const createdEvent = event as SubscriptionCreatedEvent;
-        await this.rabbitMQPublisher.publishSubscriptionCreated({
-          subscriptionId: createdEvent.aggregateId,
-          email: createdEvent.email,
-          city: createdEvent.city,
-          createdAt: createdEvent.occurredAt.toISOString()
-        });
-        break;
+    case 'SubscriptionCreated':
+      const createdEvent = event as SubscriptionCreatedEvent;
+      await this.rabbitMQPublisher.publishSubscriptionCreated({
+        subscriptionId: createdEvent.aggregateId,
+        email: createdEvent.email,
+        city: createdEvent.city,
+        createdAt: createdEvent.occurredAt.toISOString()
+      });
+      break;
 
-      default:
-        console.warn(`Unknown event type: ${event.eventType}`);
+    default:
+      console.warn(`Unknown event type: ${event.eventType}`);
     }
   }
 

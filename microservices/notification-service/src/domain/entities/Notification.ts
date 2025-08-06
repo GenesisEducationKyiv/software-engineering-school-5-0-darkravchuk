@@ -124,7 +124,7 @@ export class Notification {
     nextRetryAt?: Date;
     isExpired: boolean;
     priority: string;
-  } {
+    } {
     return {
       attempts: this._attemptCount,
       canRetry: this.canBeRetried(),

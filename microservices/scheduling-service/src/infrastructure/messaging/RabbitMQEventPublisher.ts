@@ -67,12 +67,12 @@ export class RabbitMQEventPublisher implements IEventPublisher {
 
   private getRoutingKey(eventType: string): string {
     switch (eventType) {
-      case 'WeatherUpdate':
-        return 'weather.update';
-      case 'ScheduleExecuted':
-        return 'schedule.executed';
-      default:
-        return 'schedule.unknown';
+    case 'WeatherUpdate':
+      return 'weather.update';
+    case 'ScheduleExecuted':
+      return 'schedule.executed';
+    default:
+      return 'schedule.unknown';
     }
   }
 }

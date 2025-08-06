@@ -74,27 +74,27 @@ export class SendNotificationUseCase {
 
   private getTemplate(request: SendNotificationRequest): NotificationTemplate {
     switch (request.templateType) {
-      case 'welcome':
-        return NotificationTemplate.WELCOME_EMAIL;
+    case 'welcome':
+      return NotificationTemplate.WELCOME_EMAIL;
       
-      case 'subscription_confirmed':
-        return NotificationTemplate.SUBSCRIPTION_CONFIRMED;
+    case 'subscription_confirmed':
+      return NotificationTemplate.SUBSCRIPTION_CONFIRMED;
       
-      case 'daily_weather':
-        return NotificationTemplate.DAILY_WEATHER;
+    case 'daily_weather':
+      return NotificationTemplate.DAILY_WEATHER;
       
-      case 'custom':
-        if (!request.customTemplate) {
-          throw new Error('Custom template is required');
-        }
-        return NotificationTemplate.create({
-          type: 'email',
-          subject: request.customTemplate.subject,
-          body: request.customTemplate.body
-        });
+    case 'custom':
+      if (!request.customTemplate) {
+        throw new Error('Custom template is required');
+      }
+      return NotificationTemplate.create({
+        type: 'email',
+        subject: request.customTemplate.subject,
+        body: request.customTemplate.body
+      });
       
-      default:
-        throw new Error(`Unknown template type: ${request.templateType}`);
+    default:
+      throw new Error(`Unknown template type: ${request.templateType}`);
     }
   }
 
@@ -111,17 +111,17 @@ export class SendNotificationUseCase {
     }
 
     switch (priority) {
-      case 'urgent':
-        return NotificationMetadata.urgent();
-      case 'high':
-        return NotificationMetadata.realTime();
-      case 'low':
-        return NotificationMetadata.batch();
-      default:
-        return NotificationMetadata.create({
-          priority,
-          tags: [request.templateType]
-        });
+    case 'urgent':
+      return NotificationMetadata.urgent();
+    case 'high':
+      return NotificationMetadata.realTime();
+    case 'low':
+      return NotificationMetadata.batch();
+    default:
+      return NotificationMetadata.create({
+        priority,
+        tags: [request.templateType]
+      });
     }
   }
 

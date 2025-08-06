@@ -15,20 +15,20 @@ export class ScheduleService {
     
     let frequency: ScheduleFrequency;
     switch (dto.frequency) {
-      case 'daily':
-        frequency = ScheduleFrequency.daily();
-        break;
-      case 'hourly':
-        frequency = ScheduleFrequency.hourly();
-        break;
-      case 'custom':
-        if (!dto.cronExpression || !dto.cronDescription) {
-          throw new Error('Custom frequency requires cron expression and description');
-        }
-        frequency = ScheduleFrequency.custom(dto.cronExpression, dto.cronDescription);
-        break;
-      default:
-        throw new Error(`Unsupported frequency: ${dto.frequency}`);
+    case 'daily':
+      frequency = ScheduleFrequency.daily();
+      break;
+    case 'hourly':
+      frequency = ScheduleFrequency.hourly();
+      break;
+    case 'custom':
+      if (!dto.cronExpression || !dto.cronDescription) {
+        throw new Error('Custom frequency requires cron expression and description');
+      }
+      frequency = ScheduleFrequency.custom(dto.cronExpression, dto.cronDescription);
+      break;
+    default:
+      throw new Error(`Unsupported frequency: ${dto.frequency}`);
     }
 
     const scheduleId = this.generateId();
