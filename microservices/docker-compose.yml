@@ -1,0 +1,206 @@
+services:
+  
+  # PostgreSQL Database
+  postgres:
+    image: postgres:14-alpine
+    container_name: weather-postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-weather_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-weather_password}
+      POSTGRES_DB: ${DB_NAME:-weather_db}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d/
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-weather_user} -d ${DB_NAME:-weather_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  # RabbitMQ Message Broker
+  rabbitmq:
+    image: rabbitmq:3.11-management-alpine
+    container_name: weather-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-weather_user}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-weather_password}
+      RABBITMQ_DEFAULT_VHOST: /
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    ports:
+      - "5672:5672"     # AMQP port
+      - "15672:15672"   # Management UI port
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  # API Gateway
+  api-gateway:
+    build: 
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: weather-api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - SUBSCRIPTION_SERVICE_URL=http://subscription-service:3001
+      - WEATHER_SERVICE_URL=http://weather-service:3002
+      - SCHEDULING_SERVICE_URL=http://scheduling-service:3003
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3004
+    depends_on:
+      subscription-service:
+        condition: service_healthy
+      weather-service:
+        condition: service_healthy
+      scheduling-service:
+        condition: service_healthy
+      notification-service:
+        condition: service_healthy
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Subscription Service
+  subscription-service:
+    build:
+      context: ./subscription-service
+      dockerfile: Dockerfile
+    container_name: weather-subscription-service
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-weather_user}
+      - DB_PASSWORD=${DB_PASSWORD:-weather_password}
+      - DB_NAME=${DB_NAME:-weather_db}
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER:-weather_user}:${RABBITMQ_PASSWORD:-weather_password}@rabbitmq:5672
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Weather Service  
+  weather-service:
+    build:
+      context: ./weather-service
+      dockerfile: Dockerfile
+    container_name: weather-weather-service
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=production
+      - PORT=3002
+      - OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY}
+      - CACHE_TTL=300
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # Scheduling Service
+  scheduling-service:
+    build:
+      context: ./scheduling-service
+      dockerfile: Dockerfile
+    container_name: weather-scheduling-service
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=production
+      - PORT=3003
+      - WEATHER_SERVICE_URL=http://weather-service:3002
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER:-weather_user}:${RABBITMQ_PASSWORD:-weather_password}@rabbitmq:5672
+    depends_on:
+      weather-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Notification Service
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    container_name: weather-notification-service
+    ports:
+      - "3004:3004"
+    environment:
+      - NODE_ENV=production
+      - PORT=3004
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER:-weather_user}:${RABBITMQ_PASSWORD:-weather_password}@rabbitmq:5672
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
+      - FROM_EMAIL=${FROM_EMAIL:-noreply@weather-app.com}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  postgres_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+
+networks:
+  microservices-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
