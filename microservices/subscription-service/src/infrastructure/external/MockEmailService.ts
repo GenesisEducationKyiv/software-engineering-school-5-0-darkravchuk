@@ -13,12 +13,9 @@ export class HttpEmailService implements IEmailService {
 
   async sendConfirmationEmail(email: Email, confirmationToken: Token): Promise<void> {
     try {
-      // In a real implementation, this would make HTTP call to notification service
-      // For now, we'll simulate it
-      console.log(`📧 [MOCK] Sending confirmation email to ${email.toString()}`);
-      console.log(`📧 [MOCK] Confirmation URL: http://localhost:3000/confirm/${confirmationToken.toString()}`);
+      console.log(`[MOCK] Sending confirmation email to ${email.toString()}`);
+      console.log(`[MOCK] Confirmation URL: http://localhost:3000/confirm/${confirmationToken.toString()}`);
       
-      // Simulate async operation
       await new Promise(resolve => setTimeout(resolve, 100));
     } catch (error) {
       console.error('Failed to send confirmation email:', error);
@@ -33,13 +30,10 @@ export class HttpEmailService implements IEmailService {
     unsubscribeToken: Token
   ): Promise<void> {
     try {
-      // In a real implementation, this would make HTTP call to notification service
-      // For now, we'll simulate it
-      console.log(`📧 [MOCK] Sending weather update to ${email.toString()}`);
-      console.log(`📧 [MOCK] Weather for ${city}: ${weatherData.temperature}°C, ${weatherData.description}`);
-      console.log(`📧 [MOCK] Unsubscribe URL: http://localhost:3000/unsubscribe/${unsubscribeToken.toString()}`);
+      console.log(`[MOCK] Sending weather update to ${email.toString()}`);
+      console.log(`[MOCK] Weather for ${city}: ${weatherData.temperature}°C, ${weatherData.description}`);
+      console.log(`[MOCK] Unsubscribe URL: http://localhost:3000/unsubscribe/${unsubscribeToken.toString()}`);
       
-      // Simulate async operation
       await new Promise(resolve => setTimeout(resolve, 100));
     } catch (error) {
       console.error('Failed to send weather update email:', error);

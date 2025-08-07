@@ -1,11 +1,10 @@
 import { Request, Response } from 'express';
-import { SendNotificationUseCase, ProcessNotificationUseCase } from '../../application/use-cases';
+import { SendNotificationUseCase } from '../../application/use-cases';
 import { INotificationRepository } from '../../domain/repositories';
 
 export class NotificationController {
   constructor(
     private readonly sendNotificationUseCase: SendNotificationUseCase,
-    private readonly processNotificationUseCase: ProcessNotificationUseCase,
     private readonly notificationRepository: INotificationRepository
   ) {
     this.sendNotification = this.sendNotification.bind(this);
@@ -87,18 +86,18 @@ export class NotificationController {
 
   async healthCheck(req: Request, res: Response): Promise<void> {
     try {
-      const statusCounts = await this.notificationRepository.getStatusCounts();
-      const totalNotifications = Object.values(statusCounts).reduce((sum, count) => sum + count, 0);
+      // const statusCounts = await this.notificationRepository.getStatusCounts();
+      // const totalNotifications = Object.values(statusCounts).reduce((sum, count) => sum + count, 0);
 
       res.status(200).json({
         success: true,
         service: 'Notification Service',
         timestamp: new Date().toISOString(),
         version: '1.0.0',
-        stats: {
-          totalNotifications,
-          statusCounts
-        }
+        // stats: {
+        //   totalNotifications,
+        //   statusCounts
+        // }
       });
     } catch (error) {
       this.handleError(res, error, 'Health check failed');

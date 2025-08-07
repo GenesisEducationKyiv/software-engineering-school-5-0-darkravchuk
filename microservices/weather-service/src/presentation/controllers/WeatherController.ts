@@ -125,6 +125,7 @@ export class WeatherController {
 
   healthCheck = async (req: Request, res: Response): Promise<void> => {
     try {
+      console.log('SPERMA');
       res.status(200).json({
         success: true,
         service: 'Weather Service',

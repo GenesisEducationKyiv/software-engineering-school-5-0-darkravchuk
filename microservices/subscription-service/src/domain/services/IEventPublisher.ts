@@ -18,13 +18,8 @@ export abstract class BaseDomainEvent implements DomainEvent {
 }
 
 export interface IEventPublisher {
-  /**
-   * Publish a domain event
-   */
+
   publish(event: DomainEvent): Promise<void>;
 
-  /**
-   * Publish multiple domain events
-   */
   publishAll(events: DomainEvent[]): Promise<void>;
 }
