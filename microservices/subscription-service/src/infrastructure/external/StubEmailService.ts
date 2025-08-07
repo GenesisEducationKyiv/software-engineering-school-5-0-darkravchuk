@@ -31,12 +31,11 @@ export class HttpEmailService implements IEmailService {
         }
       );
 
-      console.log(`📧 Confirmation email sent to ${email.toString()}`);
+      console.log(`Confirmation email sent to ${email.toString()}`);
     } catch (error) {
       if (axios.isAxiosError(error) && (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND')) {
-        // Email service is unavailable, log instead of sending
-        console.log(`📧 [EMAIL SERVICE UNAVAILABLE] Would send confirmation email to ${email.toString()}`);
-        console.log(`📧 Confirmation link: ${process.env.DOMAIN || 'http://localhost:3001'}/api/v1/subscriptions/confirm/${confirmationToken.toString()}`);
+        console.log(`[EMAIL SERVICE UNAVAILABLE] Would send confirmation email to ${email.toString()}`);
+        console.log(`Confirmation link: ${process.env.DOMAIN || 'http://localhost:3001'}/api/v1/subscriptions/confirm/${confirmationToken.toString()}`);
         return;
       }
 
@@ -71,14 +70,13 @@ export class HttpEmailService implements IEmailService {
         }
       );
 
-      console.log(`📧 Weather update email sent to ${email.toString()}`);
+      console.log(`Weather update email sent to ${email.toString()}`);
     } catch (error) {
       if (axios.isAxiosError(error) && (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND')) {
-        // Email service is unavailable, log instead of sending
         const unsubscribeLink = `${process.env.DOMAIN || 'http://localhost:3001'}/api/v1/subscriptions/unsubscribe/${unsubscribeToken.toString()}`;
-        console.log(`📧 [EMAIL SERVICE UNAVAILABLE] Would send weather update to ${email.toString()}`);
-        console.log(`📧 Weather: ${weatherData.temperature}°C, ${weatherData.description} in ${city}`);
-        console.log(`📧 Unsubscribe link: ${unsubscribeLink}`);
+        console.log(`[EMAIL SERVICE UNAVAILABLE] Would send weather update to ${email.toString()}`);
+        console.log(`Weather: ${weatherData.temperature}°C, ${weatherData.description} in ${city}`);
+        console.log(`Unsubscribe link: ${unsubscribeLink}`);
         return;
       }
 

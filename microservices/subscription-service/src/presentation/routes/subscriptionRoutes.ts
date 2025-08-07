@@ -24,7 +24,7 @@ router.get('/active', async (req, res, next) => {
   await subscriptionController.getActiveSubscriptions(req, res, next);
 });
 
-router.post('/confirm/:token', async (req, res, next) => {
+router.get('/confirm/:token', async (req, res, next) => {
   await subscriptionController.confirmSubscription(req, res, next);
 });
 

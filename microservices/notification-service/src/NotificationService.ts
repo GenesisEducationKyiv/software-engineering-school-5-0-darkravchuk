@@ -6,6 +6,7 @@ import {
   SubscriptionCreatedHandler,
   DailyWeatherHandler
 } from './infrastructure/handlers';
+import {IMessageBroker} from './domain/repositories';
 
 export class NotificationService {
   private app: express.Application;
@@ -34,7 +35,6 @@ export class NotificationService {
   private setupRoutes(): void {
     const notificationController = new NotificationController(
       this.container.sendNotificationUseCase,
-      this.container.processNotificationUseCase,
       this.container.notificationRepository
     );
 
@@ -85,13 +85,10 @@ export class NotificationService {
   }
 
   private async setupMessageBroker(): Promise<void> {
-    const messageBroker = this.container.messageBroker;
+    const messageBroker = this.container.messageBroker as IMessageBroker;
     
     try {
       await messageBroker.connect();
-
-      await messageBroker.createExchange('weather-events', 'topic', { durable: true });
-      await messageBroker.createQueue('notification-events', { durable: true });
 
       const subscriptionCreatedHandler = new SubscriptionCreatedHandler(
         this.container.sendNotificationUseCase
@@ -102,7 +99,7 @@ export class NotificationService {
 
       await messageBroker.subscribe(
         'weather-events',
-        'notification-events',
+        'created-subscriptions',
         'subscription.created',
         subscriptionCreatedHandler
       );

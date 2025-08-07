@@ -18,7 +18,7 @@ class SubscriptionServiceApp {
   constructor() {
     this.app = express();
     this.port = parseInt(process.env.PORT || '3001', 10);
-    
+
     this.setupMiddleware();
     this.setupRoutes();
     this.setupErrorHandling();
@@ -86,29 +86,15 @@ class SubscriptionServiceApp {
       await initializeDatabase();
 
       this.app.listen(this.port, () => {
-        console.log(`🚀 Subscription Service running on port ${this.port}`);
-        console.log(`📊 Health check: http://localhost:${this.port}/health`);
-        console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+        console.log(`Subscription Service running on port ${this.port}`);
+        console.log(`Health check: http://localhost:${this.port}/health`);
+        console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
       });
 
-      this.setupGracefulShutdown();
-      
     } catch (error) {
       console.error('Failed to start Subscription Service:', error);
       process.exit(1);
     }
-  }
-
-  private setupGracefulShutdown(): void {
-    const gracefulShutdown = (signal: string) => {
-      console.log(`\nReceived ${signal}. Shutting down gracefully...`);
-      
-      // Here you would close database connections, clear intervals, etc.
-      process.exit(0);
-    };
-
-    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
   }
 }
 
