@@ -1,11 +1,15 @@
 import express from 'express';
 import cors from 'cors';
+import { logger } from './infrastructure/logging/logger';
+import { metricsCollector } from './infrastructure/metrics/metrics';
+import { correlationIdMiddleware, requestTimingMiddleware, metricsMiddleware } from './presentation/middleware/observability';
 import { NotificationController } from './presentation/controllers';
 import { createNotificationContainer, NotificationConfig } from './infrastructure/container';
 import { 
   SubscriptionCreatedHandler,
   DailyWeatherHandler
 } from './infrastructure/handlers';
+import {IMessageBroker} from './domain/repositories';
 
 export class NotificationService {
   private app: express.Application;
@@ -21,20 +25,17 @@ export class NotificationService {
   }
 
   private setupMiddleware(): void {
+    this.app.use(correlationIdMiddleware);
+    this.app.use(requestTimingMiddleware);
     this.app.use(cors());
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
-
-    this.app.use((req, res, next) => {
-      console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-      next();
-    });
+    this.app.use(metricsMiddleware);
   }
 
   private setupRoutes(): void {
     const notificationController = new NotificationController(
       this.container.sendNotificationUseCase,
-      this.container.processNotificationUseCase,
       this.container.notificationRepository
     );
 
@@ -43,6 +44,9 @@ export class NotificationService {
     this.app.get('/api/notifications/:id', notificationController.getNotification);
 
     this.app.get('/health', notificationController.healthCheck);
+    this.app.get('/metrics', (req, res) => {
+      res.json({ timestamp: new Date().toISOString(), ...metricsCollector.getMetrics() });
+    });
 
     this.app.use('/*any', (req, res) => {
       res.status(404).json({
@@ -55,13 +59,8 @@ export class NotificationService {
 
   private setupErrorHandling(): void {
     this.app.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-      console.error('Unhandled error:', error);
-      
-      res.status(500).json({
-        success: false,
-        error: 'Internal server error',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
+      logger.error('Unhandled error', { error: error.message, stack: error.stack, correlationId: (req as any).correlationId });
+      res.status(500).json({ success: false, error: 'Internal server error' });
     });
   }
 
@@ -70,28 +69,22 @@ export class NotificationService {
       await this.setupMessageBroker();
 
       this.app.listen(port, () => {
-        console.log(`Notification Service is running on port ${port}`);
-        console.log(`Health check: http://localhost:${port}/health`);
-        console.log(`Send notification: POST http://localhost:${port}/api/notifications`);
+        logger.info('Notification Service started', { port, env: process.env.NODE_ENV || 'development', sampling: process.env.LOG_SAMPLING_RATE || '1.0' });
       });
 
-      // Start background processing
       this.startBackgroundProcessing();
 
     } catch (error) {
-      console.error('Failed to start Notification Service:', error);
+      logger.error('Failed to start Notification Service', { error: (error as any)?.message });
       throw error;
     }
   }
 
   private async setupMessageBroker(): Promise<void> {
-    const messageBroker = this.container.messageBroker;
+    const messageBroker = this.container.messageBroker as IMessageBroker;
     
     try {
       await messageBroker.connect();
-
-      await messageBroker.createExchange('weather-events', 'topic', { durable: true });
-      await messageBroker.createQueue('notification-events', { durable: true });
 
       const subscriptionCreatedHandler = new SubscriptionCreatedHandler(
         this.container.sendNotificationUseCase
@@ -102,7 +95,7 @@ export class NotificationService {
 
       await messageBroker.subscribe(
         'weather-events',
-        'notification-events',
+        'created-subscriptions',
         'subscription.created',
         subscriptionCreatedHandler
       );
@@ -114,9 +107,9 @@ export class NotificationService {
         dailyWeatherHandler
       );
 
-      console.log('RabbitMQ message broker setup complete');
+      logger.info('RabbitMQ message broker setup complete');
     } catch (error) {
-      console.error('Failed to setup message broker:', error);
+      logger.error('Failed to setup message broker', { error: (error as any)?.message });
       throw error;
     }
   }
@@ -125,20 +118,19 @@ export class NotificationService {
     this.processingInterval = setInterval(async () => {
       try {
         const result = await this.container.processPendingNotificationsUseCase.execute();
-        
         if (result.processed > 0) {
-          console.log(`Processed ${result.processed} notifications: ${result.successful} successful, ${result.failed} failed, ${result.skipped} skipped`);
+          logger.info('Processed pending notifications', { processed: result.processed, successful: result.successful, failed: result.failed, skipped: result.skipped });
         }
       } catch (error) {
-        console.error('Error in background processing:', error);
+        logger.error('Error in background processing', { error: (error as any)?.message });
       }
     }, this.config.processingIntervalMs);
 
-    console.log(`Background processing started (interval: ${this.config.processingIntervalMs}ms)`);
+    logger.info('Background processing started', { intervalMs: this.config.processingIntervalMs });
   }
 
   public async shutdown(): Promise<void> {
-    console.log('Shutting down Notification Service...');
+    logger.info('Shutting down Notification Service');
 
     if (this.processingInterval) {
       clearInterval(this.processingInterval);
@@ -147,10 +139,10 @@ export class NotificationService {
     try {
       await this.container.messageBroker.disconnect();
     } catch (error) {
-      console.error('Error disconnecting from RabbitMQ:', error);
+      logger.error('Error disconnecting from RabbitMQ', { error: (error as any)?.message });
     }
 
-    console.log('Notification Service shutdown complete');
+    logger.info('Notification Service shutdown complete');
   }
 
   public getApp(): express.Application {

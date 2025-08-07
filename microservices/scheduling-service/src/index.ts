@@ -1,5 +1,7 @@
 import dotenv from 'dotenv';
 import { DependencyContainer } from './container/DependencyContainer';
+import { logger } from './infrastructure/logging/logger';
+import { metricsCollector } from './infrastructure/metrics/metrics';
 
 dotenv.config();
 
@@ -10,13 +12,7 @@ const config = {
   nodeEnv: process.env.NODE_ENV || 'development'
 };
 
-console.log('Starting Scheduling Service...');
-console.log('Configuration:', {
-  port: config.port,
-  weatherServiceUrl: config.weatherServiceUrl,
-  rabbitMqUrl: config.rabbitMqUrl,
-  nodeEnv: config.nodeEnv
-});
+logger.info('Starting Scheduling Service', { config });
 
 async function startService(): Promise<void> {
   let container: DependencyContainer | undefined;
@@ -33,11 +29,11 @@ async function startService(): Promise<void> {
 
     container.cronScheduler.start();
 
-    console.log('Scheduling Service started successfully!');
-    console.log('Cron scheduler is running - weather updates will be processed automatically');
+    logger.info('Scheduling Service started successfully');
+    logger.debug('Cron scheduler running');
 
   } catch (error) {
-    console.error('Failed to start Scheduling Service:', error);
+    logger.error('Failed to start Scheduling Service', { error });
     
     if (container) {
       await container.cleanup();
@@ -47,13 +43,13 @@ async function startService(): Promise<void> {
   }
 
   const shutdown = async (signal: string) => {
-    console.log(`\nReceived ${signal}, shutting down gracefully...`);
+    logger.warn('Shutdown signal received', { signal });
     
     if (container) {
       await container.cleanup();
     }
     
-    console.log('Scheduling Service shut down complete');
+    logger.info('Scheduling Service shut down complete');
     process.exit(0);
   };
 
@@ -61,17 +57,17 @@ async function startService(): Promise<void> {
   process.on('SIGINT', () => shutdown('SIGINT'));
 
   process.on('uncaughtException', (error) => {
-    console.error('Uncaught Exception:', error);
+    logger.error('Uncaught Exception', { error });
     shutdown('uncaughtException');
   });
 
   process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    logger.error('Unhandled Rejection', { reason, promise: String(promise) });
     shutdown('unhandledRejection');
   });
 }
 
 startService().catch((error) => {
-  console.error('Fatal error starting service:', error);
+  logger.error('Fatal error starting service', { error });
   process.exit(1);
 });

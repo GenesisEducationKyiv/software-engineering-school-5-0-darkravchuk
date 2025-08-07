@@ -1,8 +1,10 @@
 import { MessageHandler } from '../../domain/repositories/IMessageBroker';
 import { SendNotificationUseCase } from '../../application/use-cases';
+import { logger } from '../logging/logger';
+import { metricsCollector } from '../metrics/metrics';
 
 export interface SubscriptionCreatedEvent {
-  subscriptionId: string;
+  confirmationToken: string;
   email: string;
   city: string;
   createdAt: string;
@@ -14,7 +16,7 @@ export class SubscriptionCreatedHandler implements MessageHandler<SubscriptionCr
   ) {}
 
   async handle(event: SubscriptionCreatedEvent): Promise<void> {
-    console.log('📬 Processing subscription.created event:', event);
+    logger.info('Processing subscription.created event', { email: event.email, city: event.city });
 
     try {
       await this.sendNotificationUseCase.execute({
@@ -24,14 +26,15 @@ export class SubscriptionCreatedHandler implements MessageHandler<SubscriptionCr
           name: event.email.split('@')[0],
           email: event.email,
           city: event.city,
-          confirmationLink: `http://localhost:3001/api/subscriptions/confirm/${event.subscriptionId}`
+          confirmationLink: `http://localhost:3001/api/subscriptions/confirm/${event.confirmationToken}`
         },
         priority: 'high'
       });
-
-      console.log('Welcome notification sent for subscription:', event.subscriptionId);
+      metricsCollector.recordNotification('welcome', 'high', true);
+      logger.debug('Welcome notification dispatched', { confirmationToken: event.confirmationToken });
     } catch (error) {
-      console.error('Failed to send welcome notification:', error);
+      metricsCollector.recordNotification('welcome', 'high', false);
+      logger.error('Failed to send welcome notification', { error: (error as any)?.message });
       throw error;
     }
   }

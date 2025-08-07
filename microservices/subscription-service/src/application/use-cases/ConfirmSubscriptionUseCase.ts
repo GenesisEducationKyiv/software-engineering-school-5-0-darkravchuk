@@ -11,6 +11,8 @@ import {
   NotFoundError 
 } from '../errors/ApplicationErrors';
 import { TYPES } from '../../infrastructure/di/types';
+import { logger } from '../../infrastructure/logging/logger';
+import { metricsCollector } from '../../infrastructure/metrics/metricsCollector';
 
 @injectable()
 export class ConfirmSubscriptionUseCase {
@@ -20,31 +22,69 @@ export class ConfirmSubscriptionUseCase {
   ) {}
 
   async execute(request: ConfirmSubscriptionRequest): Promise<ConfirmSubscriptionResponse> {
+    const startTime = Date.now();
+    
+    logger.info('Starting subscription confirmation', {
+      operation: 'ConfirmSubscription',
+      tokenPrefix: request.confirmationToken.substring(0, 8) + '...'
+    });
+
     try {
-      // 1. Validate and create token value object
+      logger.debug('Validating confirmation token');
       const confirmationToken = this.createToken(request.confirmationToken);
 
-      // 2. Find subscription by confirmation token
+      logger.debug('Looking up subscription by confirmation token');
       const subscription = await this.subscriptionRepository.findByConfirmationToken(confirmationToken);
       if (!subscription) {
         throw new NotFoundError('Token not found');
       }
 
-      // 3. Check if already confirmed
+      logger.debug('Checking if subscription is already confirmed', {
+        subscriptionId: subscription.id.toString(),
+        isConfirmed: subscription.isConfirmed()
+      });
+      
       if (subscription.isConfirmed()) {
         throw new ValidationError('Already confirmed');
       }
 
-      // 4. Confirm subscription
+      logger.debug('Confirming subscription', {
+        subscriptionId: subscription.id.toString(),
+        email: `${subscription.email.toString().substring(0, 3)}***@***`
+      });
       subscription.confirm();
 
-      // 5. Save updated subscription
+      logger.debug('Saving confirmed subscription');
       await this.subscriptionRepository.save(subscription);
+
+      metricsCollector.recordSubscriptionConfirmed();
+
+      const duration = Date.now() - startTime;
+      logger.logOperation('ConfirmSubscription', true, {
+        duration: `${duration}ms`,
+        subscriptionId: subscription.id.toString(),
+        email: `${subscription.email.toString().substring(0, 3)}***@***`,
+        city: subscription.city.toString()
+      });
+
+      logger.logEvent('SubscriptionConfirmed', subscription.id.toString(), {
+        email: `${subscription.email.toString().substring(0, 3)}***@***`,
+        city: subscription.city.toString(),
+        frequency: subscription.frequency.toString()
+      });
 
       return {
         message: 'Subscription confirmed successfully'
       };
     } catch (error) {
+      const duration = Date.now() - startTime;
+      
+      logger.logOperation('ConfirmSubscription', false, {
+        duration: `${duration}ms`,
+        error: error instanceof Error ? error.message : String(error),
+        tokenPrefix: request.confirmationToken.substring(0, 8) + '...'
+      });
+
       if (error instanceof ValidationError || error instanceof NotFoundError) {
         throw error;
       }

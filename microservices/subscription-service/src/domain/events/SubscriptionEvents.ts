@@ -5,10 +5,9 @@ export class SubscriptionCreatedEvent extends BaseDomainEvent {
     aggregateId: string,
     public readonly email: string,
     public readonly city: string,
-    public readonly frequency: string,
     public readonly confirmationToken: string
   ) {
-    super('SubscriptionCreated', aggregateId);
+    super('created', aggregateId);
   }
 }
 

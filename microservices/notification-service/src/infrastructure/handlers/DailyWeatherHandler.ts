@@ -1,5 +1,7 @@
 import { MessageHandler } from '../../domain/repositories/IMessageBroker';
 import { SendNotificationUseCase } from '../../application/use-cases';
+import { logger } from '../logging/logger';
+import { metricsCollector } from '../metrics/metrics';
 
 export interface DailyWeatherEvent {
   subscriptionId: string;
@@ -28,7 +30,7 @@ export class DailyWeatherHandler implements MessageHandler<DailyWeatherEvent> {
   ) {}
 
   async handle(event: DailyWeatherEvent): Promise<void> {
-    console.log('📬 Processing weather.daily event:', event);
+    logger.info('Processing weather.daily event', { email: event.email, city: event.city });
 
     try {
       const forecastSummary = event.forecast?.summary || 'No forecast available';
@@ -51,9 +53,11 @@ export class DailyWeatherHandler implements MessageHandler<DailyWeatherEvent> {
         priority: 'low'
       });
 
-      console.log('Daily weather notification sent for subscription:', event.subscriptionId);
+      metricsCollector.recordNotification('daily_weather', 'low', true);
+      logger.debug('Daily weather notification dispatched', { subscriptionId: event.subscriptionId });
     } catch (error) {
-      console.error('Failed to send daily weather notification:', error);
+      metricsCollector.recordNotification('daily_weather', 'low', false);
+      logger.error('Failed to send daily weather notification', { error: (error as any)?.message });
       throw error;
     }
   }

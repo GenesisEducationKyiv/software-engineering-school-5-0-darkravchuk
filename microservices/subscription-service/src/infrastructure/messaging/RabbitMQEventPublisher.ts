@@ -7,7 +7,7 @@ export class RabbitMQEventPublisher implements IEventPublisher {
   private connection?: amqp.ChannelModel;
   private channel?: amqp.Channel;
   private readonly connectionUrl: string;
-  private readonly exchangeName: string = 'domain-events';
+  private readonly exchangeName: string = 'weather-events';
 
   constructor(connectionUrl: string = 'amqp://localhost:5672') {
     this.connectionUrl = connectionUrl;
@@ -15,16 +15,13 @@ export class RabbitMQEventPublisher implements IEventPublisher {
 
   async connect(): Promise<void> {
     try {
-      // amqp.connect() returns a ChannelModel, not a Connection
       this.connection = await amqp.connect(this.connectionUrl);
       this.channel = await this.connection.createChannel();
 
-      // Create the domain events exchange
       await this.channel.assertExchange(this.exchangeName, 'topic', {
         durable: true
       });
 
-      // Handle connection events
       this.connection.on('error', (error) => {
         console.error('RabbitMQ connection error:', error);
       });
@@ -33,28 +30,10 @@ export class RabbitMQEventPublisher implements IEventPublisher {
         console.log('RabbitMQ connection closed');
       });
 
-      console.log('✅ Connected to RabbitMQ for domain events');
+      console.log('Connected to RabbitMQ for domain events');
     } catch (error) {
-      console.error('❌ Failed to connect to RabbitMQ:', error);
+      console.error('Failed to connect to RabbitMQ:', error);
       throw error;
-    }
-  }
-
-  async disconnect(): Promise<void> {
-    try {
-      if (this.channel) {
-        await this.channel.close();
-        this.channel = undefined;
-      }
-
-      if (this.connection) {
-        await this.connection.close();
-        this.connection = undefined;
-      }
-
-      console.log('🔌 Disconnected from RabbitMQ');
-    } catch (error) {
-      console.error('Error disconnecting from RabbitMQ:', error);
     }
   }
 
@@ -73,7 +52,7 @@ export class RabbitMQEventPublisher implements IEventPublisher {
       occurredAt: event.occurredAt.toISOString()
     }));
 
-    console.log(`📢 Publishing domain event: ${event.eventType}`, {
+    console.log(`Publishing domain event: ${event.eventType}`, {
       aggregateId: event.aggregateId,
       occurredAt: event.occurredAt.toISOString(),
       version: event.version,

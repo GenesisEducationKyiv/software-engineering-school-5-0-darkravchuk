@@ -1,11 +1,12 @@
 import { Request, Response } from 'express';
-import { SendNotificationUseCase, ProcessNotificationUseCase } from '../../application/use-cases';
+import { SendNotificationUseCase } from '../../application/use-cases';
 import { INotificationRepository } from '../../domain/repositories';
+import { logger } from '../../infrastructure/logging/logger';
+import { metricsCollector } from '../../infrastructure/metrics/metrics';
 
 export class NotificationController {
   constructor(
     private readonly sendNotificationUseCase: SendNotificationUseCase,
-    private readonly processNotificationUseCase: ProcessNotificationUseCase,
     private readonly notificationRepository: INotificationRepository
   ) {
     this.sendNotification = this.sendNotification.bind(this);
@@ -39,7 +40,11 @@ export class NotificationController {
         success: true,
         data: result
       });
+      metricsCollector.recordNotification(templateType, priority || 'normal', true);
+      logger.info('Notification accepted', { recipient, templateType, priority: priority || 'normal' });
     } catch (error) {
+      metricsCollector.recordNotification(req.body?.templateType || 'unknown', req.body?.priority || 'normal', false);
+      logger.error('Failed to send notification', { error: (error as any)?.message });
       this.handleError(res, error, 'Failed to send notification');
     }
   }
@@ -63,6 +68,7 @@ export class NotificationController {
         data: notification.toApiResponse()
       });
     } catch (error) {
+      logger.error('Failed to get notification', { error: (error as any)?.message });
       this.handleError(res, error, 'Failed to get notification');
     }
   }
@@ -81,32 +87,27 @@ export class NotificationController {
         }
       });
     } catch (error) {
+      logger.error('Failed to get notification stats', { error: (error as any)?.message });
       this.handleError(res, error, 'Failed to get notification stats');
     }
   }
 
   async healthCheck(req: Request, res: Response): Promise<void> {
     try {
-      const statusCounts = await this.notificationRepository.getStatusCounts();
-      const totalNotifications = Object.values(statusCounts).reduce((sum, count) => sum + count, 0);
-
       res.status(200).json({
         success: true,
         service: 'Notification Service',
         timestamp: new Date().toISOString(),
         version: '1.0.0',
-        stats: {
-          totalNotifications,
-          statusCounts
-        }
       });
     } catch (error) {
+      logger.error('Health check failed', { error: (error as any)?.message });
       this.handleError(res, error, 'Health check failed');
     }
   }
 
   private handleError(res: Response, error: unknown, defaultMessage: string): void {
-    console.error('Notification Controller Error:', error);
+    logger.error('Notification Controller Error', { error: error instanceof Error ? error.message : error });
 
     if (error instanceof Error) {
       // Handle known error types
@@ -135,7 +136,6 @@ export class NotificationController {
       }
     }
 
-    // Generic server error
     res.status(500).json({
       success: false,
       error: defaultMessage,

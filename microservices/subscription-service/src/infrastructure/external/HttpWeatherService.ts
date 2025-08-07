@@ -33,8 +33,7 @@ export class HttpWeatherService implements IWeatherService {
     } catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
-          // Weather service is unavailable, return mock data
-          console.log(`🌤️ [WEATHER SERVICE UNAVAILABLE] Using mock data for ${city.toString()}`);
+          console.log(`[WEATHER SERVICE UNAVAILABLE] Using mock data for ${city.toString()}`);
           return this.getMockWeatherData(city);
         }
         
@@ -53,20 +52,16 @@ export class HttpWeatherService implements IWeatherService {
       await this.getWeatherData(city);
       return true;
     } catch (error) {
-      // If error is about city not found, return false
       if (error instanceof Error && error.message.includes('not found')) {
         return false;
       }
-      
-      // For other errors (service unavailable, etc.), assume city is valid
-      // In production, you might want to have a separate validation endpoint
-      console.log(`🌤️ [WEATHER SERVICE UNAVAILABLE] Assuming city ${city.toString()} is valid`);
+
+      console.log(`[WEATHER SERVICE UNAVAILABLE] Assuming city ${city.toString()} is valid`);
       return true;
     }
   }
 
   private getMockWeatherData(city: City): WeatherData {
-    // Simple mock data based on city name hash
     const cityHash = city.toString().toLowerCase().charCodeAt(0);
     const temperatures = [15, 18, 22, 25, 28, 12, 8];
     const descriptions = ['Sunny', 'Cloudy', 'Partly cloudy', 'Rainy', 'Clear'];

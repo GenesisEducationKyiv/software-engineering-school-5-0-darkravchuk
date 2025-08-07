@@ -101,7 +101,7 @@ export class Notification {
     }
 
     if (!this._nextRetryAt) {
-      return true; // First attempt
+      return true;
     }
 
     return Date.now() >= this._nextRetryAt.getTime();

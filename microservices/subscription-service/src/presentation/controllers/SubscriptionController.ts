@@ -10,11 +10,7 @@ import {
   UnsubscribeRequest 
 } from '../../application/dto/SubscriptionDto';
 import { 
-  ApplicationError,
   ValidationError,
-  NotFoundError,
-  ConflictError,
-  ExternalServiceError 
 } from '../../application/errors/ApplicationErrors';
 import { TYPES } from '../../infrastructure/di/types';
 
@@ -29,17 +25,19 @@ export class SubscriptionController {
 
   async createSubscription(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      console.log(req.body);
       const request: CreateSubscriptionRequest = {
         email: req.body.email,
         city: req.body.city,
         frequency: req.body.frequency
       };
 
-      // Basic request validation
       this.validateCreateSubscriptionRequest(request);
 
+      console.log('After validation');
       const result = await this.createSubscriptionUseCase.execute(request);
-      
+
+      console.log('After request');
       res.status(201).json({
         success: true,
         data: result
