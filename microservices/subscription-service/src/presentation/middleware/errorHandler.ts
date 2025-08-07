@@ -40,7 +40,6 @@ export const errorHandler = (
     method: req.method
   };
 
-  // Handle application errors
   if (error instanceof ApplicationError) {
     errorResponse.error.code = error.code;
     errorResponse.error.message = error.message;
@@ -48,7 +47,6 @@ export const errorHandler = (
     return;
   }
 
-  // Handle validation errors from express-validator or similar
   if (error.name === 'ValidationError') {
     errorResponse.error.code = 'VALIDATION_ERROR';
     errorResponse.error.message = error.message;
@@ -56,7 +54,6 @@ export const errorHandler = (
     return;
   }
 
-  // Handle Sequelize errors
   if (error.name === 'SequelizeValidationError') {
     errorResponse.error.code = 'DATABASE_VALIDATION_ERROR';
     errorResponse.error.message = 'Database validation failed';
@@ -75,7 +72,6 @@ export const errorHandler = (
     return;
   }
 
-  // Handle JWT errors
   if (error.name === 'JsonWebTokenError') {
     errorResponse.error.code = 'INVALID_TOKEN';
     errorResponse.error.message = 'Invalid authentication token';
@@ -90,7 +86,6 @@ export const errorHandler = (
     return;
   }
 
-  // Default to 500 internal server error
   if (process.env.NODE_ENV === 'development') {
     errorResponse.error.message = error.message;
     errorResponse.error.details = error.stack;
