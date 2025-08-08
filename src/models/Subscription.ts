@@ -58,6 +58,7 @@ Subscription.init(
   {
     sequelize,
     modelName: 'Subscription',
+    tableName: 'Subscriptions',
   }
 );
 

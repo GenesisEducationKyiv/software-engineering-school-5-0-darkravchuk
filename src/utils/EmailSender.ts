@@ -1,49 +1,33 @@
-import sgMail from '@sendgrid/mail';
+import { IEmailProvider } from '../interfaces/IEmailProvider';
+import { IEmailSender } from '../interfaces/IEmailSender';
+import { buildConfirmationEmail, buildWeatherUpdateEmail, buildUnsubscribeEmail, EmailContent } from './emailBuilder';
 
-export interface EmailService {
-  send: (msg: any) => Promise<any>;
-  setApiKey: (apiKey: string) => void;
-}
-
-export class EmailSender {
-  private sgMail: EmailService;
-  private domain: string;
-  private emailFrom: string;
-
-  constructor(sgMail: EmailService, domain: string, emailFrom: string) {
-    this.sgMail = sgMail;
-    this.domain = domain;
-    this.emailFrom = emailFrom;
-    this.sgMail.setApiKey(process.env.SENDGRID_API_KEY || '');
+export class EmailSender implements IEmailSender {
+  constructor(
+      private emailProvider: IEmailProvider,
+  ) {
+    this.emailProvider.configure({
+      apiKey: process.env.SENDGRID_API_KEY || '',
+    });
   }
 
-  async sendConfirmationEmail(to: string, confirmationToken: string) {
-    const confirmationLink = `${this.domain}/confirm/${confirmationToken}`;
-    console.log(`Preparing to send email to: ${to} with token: ${confirmationToken}`);
+  async sendConfirmationEmail(to: string, confirmationToken: string): Promise<void> {
+    const emailContent = buildConfirmationEmail(to, confirmationToken);
+    await this.emailProvider.send(emailContent);
+  }
 
-    const msg = {
-      to,
-      from: this.emailFrom,
-      subject: 'Confirm Your Weather Subscription',
-      text: `Please confirm your subscription by clicking the link: ${confirmationLink}`,
-      html: `
-        <h2>Confirm Your Weather Subscription</h2>
-        <p>Click the link below to confirm your subscription:</p>
-        <a href="${confirmationLink}">${confirmationLink}</a>
-      `,
-    };
+  async sendWeatherUpdateEmail(to: string, city: string, unsubscribeToken: string, weather: {
+    temperature: number;
+    description: string;
+    humidity: number;
+    pressure: number;
+  }): Promise<void> {
+    const emailContent = buildWeatherUpdateEmail(to, city, unsubscribeToken, weather);
+    await this.emailProvider.send(emailContent);
+  }
 
-    try {
-      const response = await this.sgMail.send(msg);
-      console.log(`Confirmation email sent to ${to}`, response);
-      return response;
-    } catch (error) {
-      console.error('Error sending email:', error);
-      throw new Error('Failed to send confirmation email');
-    }
+  async sendUnsubscribeEmail(to: string, unsubscribeToken: string): Promise<void> {
+    const emailContent = buildUnsubscribeEmail(to, unsubscribeToken);
+    await this.emailProvider.send(emailContent);
   }
 }
-
-const emailService: EmailService = sgMail;
-const sender = new EmailSender(emailService, process.env.DOMAIN || '', process.env.EMAIL || '');
-export default sender;

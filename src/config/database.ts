@@ -1,14 +1,16 @@
 import { Sequelize } from 'sequelize';
-import 'dotenv/config';
+import { appConfig } from './AppConfig';
+
+const dbConfig = appConfig.getDatabaseConfig();
 
 const sequelize = new Sequelize({
   dialect: 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  port: Number(process.env.DB_PORT) || 5432,
-  username: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'qwerty',
-  database: process.env.DB_NAME || 'weather_db',
-  logging: false,
+  host: dbConfig.host,
+  port: dbConfig.port,
+  username: dbConfig.username,
+  password: dbConfig.password,
+  database: dbConfig.database,
+  logging: appConfig.isDevelopment(),
 });
 
 export default sequelize;
