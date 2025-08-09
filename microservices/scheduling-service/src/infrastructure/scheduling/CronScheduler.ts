@@ -1,5 +1,7 @@
 import * as cron from 'node-cron';
 import { ScheduleService } from '../../application/services/ScheduleService';
+import { logger } from '../logging/logger';
+import { metricsCollector } from '../metrics/metrics';
 
 export class CronScheduler {
   private runningTasks = new Map<string, cron.ScheduledTask>();
@@ -7,26 +9,26 @@ export class CronScheduler {
   constructor(private readonly scheduleService: ScheduleService) {}
 
   start(): void {
-    console.log('Starting Cron Scheduler...');
+    logger.info('Starting Cron Scheduler');
     
     const task = cron.schedule('* * * * *', async () => {
       await this.executeDueSchedules();
     });
 
     this.runningTasks.set('main-scheduler', task);
-    console.log('Cron Scheduler started successfully');
+    logger.info('Cron Scheduler started successfully');
   }
 
   stop(): void {
-    console.log('Stopping Cron Scheduler...');
+    logger.info('Stopping Cron Scheduler');
     
     this.runningTasks.forEach((task, name) => {
       task.stop();
-      console.log(`Stopped task: ${name}`);
+      logger.debug('Stopped task', { name });
     });
     
     this.runningTasks.clear();
-    console.log('Cron Scheduler stopped');
+    logger.info('Cron Scheduler stopped');
   }
 
   private async executeDueSchedules(): Promise<void> {
@@ -34,30 +36,32 @@ export class CronScheduler {
       const results = await this.scheduleService.executeAllDueSchedules();
       
       if (results.length > 0) {
-        console.log(`Executed ${results.length} scheduled weather updates:`);
+        logger.info('Executed scheduled weather updates', { count: results.length });
         results.forEach(result => {
           if (result.status === 'success') {
-            console.log(`✅ Schedule ${result.scheduleId} executed successfully`);
+            metricsCollector.recordScheduleRun(true);
+            logger.debug('Schedule executed successfully', { scheduleId: result.scheduleId });
           } else {
-            console.log(`❌ Schedule ${result.scheduleId} failed: ${result.errorMessage}`);
+            metricsCollector.recordScheduleRun(false);
+            logger.warn('Schedule execution failed', { scheduleId: result.scheduleId, error: result.errorMessage });
           }
         });
       }
     } catch (error) {
-      console.error('Error executing scheduled tasks:', error);
+      logger.error('Error executing scheduled tasks', { error: (error as any)?.message });
     }
   }
 
   addCustomSchedule(name: string, cronExpression: string, callback: () => Promise<void>): void {
     if (this.runningTasks.has(name)) {
-      console.warn(`Task ${name} already exists. Stopping existing task.`);
+      logger.warn('Task already exists, stopping existing task', { name });
       this.runningTasks.get(name)?.stop();
     }
 
     const task = cron.schedule(cronExpression, callback);
 
     this.runningTasks.set(name, task);
-    console.log(`Added custom schedule: ${name} with cron: ${cronExpression}`);
+    logger.info('Added custom schedule', { name, cron: cronExpression });
   }
 
   removeCustomSchedule(name: string): void {
@@ -65,7 +69,7 @@ export class CronScheduler {
     if (task) {
       task.stop();
       this.runningTasks.delete(name);
-      console.log(`Removed custom schedule: ${name}`);
+      logger.info('Removed custom schedule', { name });
     }
   }
 }

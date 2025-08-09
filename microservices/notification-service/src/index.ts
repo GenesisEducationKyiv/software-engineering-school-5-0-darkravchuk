@@ -1,5 +1,6 @@
 import { NotificationService } from './NotificationService';
 import { NotificationConfig } from './infrastructure/container';
+import { logger } from './infrastructure/logging/logger';
 
 const config: NotificationConfig = {
   rabbitmqUrl: process.env.RABBITMQ_URL || 'amqp://localhost:5672',
@@ -16,6 +17,6 @@ const notificationService = new NotificationService(config);
 const port = parseInt(process.env.PORT || '3004', 10);
 
 notificationService.start(port).catch(error => {
-  console.error('Failed to start Notification Service:', error);
+  logger.error('Failed to start Notification Service', { error: error instanceof Error ? error.message : String(error) });
   process.exit(1);
 });
