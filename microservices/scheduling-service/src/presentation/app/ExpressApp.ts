@@ -1,6 +1,8 @@
 import express from 'express';
 import { createScheduleRoutes } from '../routes/scheduleRoutes';
 import { ScheduleController } from '../controllers/ScheduleController';
+import { logger } from '../../infrastructure/logging/logger';
+import { metricsCollector } from '../../infrastructure/metrics/metrics';
 
 export class ExpressApp {
   private app: express.Application;
@@ -30,7 +32,14 @@ export class ExpressApp {
     });
 
     this.app.use((req, res, next) => {
-      console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+      const start = Date.now();
+      const originalJson = res.json.bind(res);
+      res.json = ((body: any) => {
+        const rt = Date.now() - start;
+        metricsCollector.recordRequest(res.statusCode, rt);
+        logger.info(`HTTP ${res.statusCode} - ${req.method} ${req.path}`, { responseTime: `${rt}ms` });
+        return originalJson(body);
+      }) as any;
       next();
     });
   }
@@ -43,6 +52,10 @@ export class ExpressApp {
         timestamp: new Date().toISOString(),
         uptime: process.uptime()
       });
+    });
+
+    this.app.get('/metrics', (req, res) => {
+      res.json({ timestamp: new Date().toISOString(), ...metricsCollector.getMetrics() });
     });
 
     this.app.use('/api', createScheduleRoutes(this.scheduleController));
@@ -71,12 +84,8 @@ export class ExpressApp {
     });
 
     this.app.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-      console.error('Unhandled error:', error);
-      
-      res.status(500).json({
-        error: 'Internal server error',
-        message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
-      });
+      logger.error('Unhandled error', { error: error.message, stack: error.stack });
+      res.status(500).json({ error: 'Internal server error' });
     });
   }
 
@@ -86,9 +95,7 @@ export class ExpressApp {
 
   listen(port: number): void {
     this.app.listen(port, () => {
-      console.log(`Scheduling Service running on port ${port}`);
-      console.log(`Health check: http://localhost:${port}/health`);
-      console.log(`API endpoints: http://localhost:${port}/api/schedules`);
+      logger.info('Scheduling Service running', { port });
     });
   }
 }

@@ -1,5 +1,7 @@
 import * as amqp from 'amqplib';
 import { IMessageBroker, MessageHandler } from '../../domain/repositories/IMessageBroker';
+import { logger } from '../logging/logger';
+import { metricsCollector } from '../metrics/metrics';
 
 export class RabbitMQBroker implements IMessageBroker {
   private connection?: amqp.ChannelModel;
@@ -15,17 +17,13 @@ export class RabbitMQBroker implements IMessageBroker {
       this.connection = await amqp.connect(this.connectionUrl);
       this.channel = await this.connection.createChannel();
 
-      this.connection.on('error', (error) => {
-        console.error('RabbitMQ connection error:', error);
-      });
+      this.connection.on('error', (error) => { logger.error('RabbitMQ connection error', { error }); });
 
-      this.connection.on('close', () => {
-        console.log('RabbitMQ connection closed');
-      });
+      this.connection.on('close', () => { logger.warn('RabbitMQ connection closed'); });
 
-      console.log('Connected to RabbitMQ');
+      logger.info('Connected to RabbitMQ');
     } catch (error) {
-      console.error('Failed to connect to RabbitMQ:', error);
+      logger.error('Failed to connect to RabbitMQ', { error });
       throw error;
     }
   }
@@ -42,9 +40,9 @@ export class RabbitMQBroker implements IMessageBroker {
         this.connection = undefined;
       }
 
-      console.log('Disconnected from RabbitMQ');
+      logger.info('Disconnected from RabbitMQ');
     } catch (error) {
-      console.error('Error disconnecting from RabbitMQ:', error);
+      logger.error('Error disconnecting from RabbitMQ', { error });
     }
   }
 
@@ -73,6 +71,8 @@ export class RabbitMQBroker implements IMessageBroker {
     if (!published) {
       throw new Error('Failed to publish message to RabbitMQ');
     }
+    metricsCollector.recordBroker('published');
+    logger.debug('Message published to RabbitMQ', { exchange, routingKey });
   }
 
   async publishBatch<T>(
@@ -113,14 +113,17 @@ export class RabbitMQBroker implements IMessageBroker {
 
         await handler.handle(message);
         await this.ack(msg);
+        metricsCollector.recordBroker('consumed');
+        logger.debug('Message consumed from RabbitMQ', { queue, routingKey });
 
       } catch (error) {
-        console.error(`Error processing message from queue ${queue}:`, error);
+        logger.error(`Error processing message from queue ${queue}`, { error });
+        metricsCollector.recordBroker('error');
         await this.nack(msg, false);
       }
     });
 
-    console.log(`📬 Subscribed to queue: ${queue} (routing key: ${routingKey})`);
+    logger.info('Subscribed to queue', { queue, routingKey });
   }
 
   async createQueue(queueName: string, options?: {
