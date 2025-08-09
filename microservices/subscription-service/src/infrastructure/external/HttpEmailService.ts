@@ -28,7 +28,6 @@ export class HttpEmailService implements IEmailService {
         }
       };
 
-      // Try to call email service, fallback to console logging
       try {
         await axios.post(`${this.emailServiceUrl}/api/v1/emails/send`, payload, {
           timeout: 5000,
@@ -36,11 +35,10 @@ export class HttpEmailService implements IEmailService {
             'Content-Type': 'application/json'
           }
         });
-        console.log(`✅ Confirmation email sent to ${email.toString()}`);
+        console.log(`Confirmation email sent to ${email.toString()}`);
       } catch (httpError) {
-        // Fallback: log to console (in real scenario, this might queue for retry)
-        console.log(`📧 [EMAIL SERVICE UNAVAILABLE] Would send confirmation email to: ${email.toString()}`);
-        console.log(`📧 Confirmation link: ${confirmationLink}`);
+        console.log(`[EMAIL SERVICE UNAVAILABLE] Would send confirmation email to: ${email.toString()}`);
+        console.log(`Confirmation link: ${confirmationLink}`);
       }
     } catch (error) {
       console.error('Failed to send confirmation email:', error);
@@ -70,7 +68,6 @@ export class HttpEmailService implements IEmailService {
         }
       };
 
-      // Try to call email service, fallback to console logging
       try {
         await axios.post(`${this.emailServiceUrl}/api/v1/emails/send`, payload, {
           timeout: 5000,
@@ -78,11 +75,10 @@ export class HttpEmailService implements IEmailService {
             'Content-Type': 'application/json'
           }
         });
-        console.log(`✅ Weather update email sent to ${email.toString()}`);
+        console.log(`Weather update email sent to ${email.toString()}`);
       } catch (httpError) {
-        // Fallback: log to console
-        console.log(`📧 [EMAIL SERVICE UNAVAILABLE] Would send weather update to: ${email.toString()}`);
-        console.log(`📧 Weather: ${weatherData.temperature}°C, ${weatherData.description} in ${city}`);
+        console.log(`[EMAIL SERVICE UNAVAILABLE] Would send weather update to: ${email.toString()}`);
+        console.log(`Weather: ${weatherData.temperature}°C, ${weatherData.description} in ${city}`);
       }
     } catch (error) {
       console.error('Failed to send weather update email:', error);

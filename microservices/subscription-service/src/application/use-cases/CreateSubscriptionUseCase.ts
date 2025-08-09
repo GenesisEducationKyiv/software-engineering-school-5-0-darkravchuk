@@ -58,7 +58,7 @@ export class CreateSubscriptionUseCase {
       await this.subscriptionRepository.save(subscription);
 
       // 6. Send confirmation email
-      await this.sendConfirmationEmail(email, confirmationToken);
+      // await this.sendConfirmationEmail(email, confirmationToken);
 
       // 7. Publish domain event
       await this.publishSubscriptionCreatedEvent(subscription);
@@ -122,20 +122,11 @@ export class CreateSubscriptionUseCase {
     }
   }
 
-  private async sendConfirmationEmail(email: Email, confirmationToken: Token): Promise<void> {
-    try {
-      await this.emailService.sendConfirmationEmail(email, confirmationToken);
-    } catch (error) {
-      throw new ExternalServiceError(error instanceof Error ? error.message : 'Unknown error', 'EmailService');
-    }
-  }
-
   private async publishSubscriptionCreatedEvent(subscription: Subscription): Promise<void> {
     const event = new SubscriptionCreatedEvent(
       subscription.id.toString(),
       subscription.email.toString(),
       subscription.city.toString(),
-      subscription.frequency.toString(),
       subscription.confirmationToken.toString()
     );
 

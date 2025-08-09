@@ -1,6 +1,5 @@
 services:
-  
-  # PostgreSQL Database
+
   postgres:
     image: postgres:14-alpine
     container_name: weather-postgres
@@ -24,7 +23,6 @@ services:
       - microservices-network
     restart: unless-stopped
 
-  # RabbitMQ Message Broker
   rabbitmq:
     image: rabbitmq:3.11-management-alpine
     container_name: weather-rabbitmq
@@ -35,8 +33,8 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     ports:
-      - "5672:5672"     # AMQP port
-      - "15672:15672"   # Management UI port
+      - "5672:5672"
+      - "15672:15672"
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 10s
@@ -47,7 +45,6 @@ services:
       - microservices-network
     restart: unless-stopped
 
-  # API Gateway
   api-gateway:
     build: 
       context: ./api-gateway
@@ -79,14 +76,13 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 11s
 
-  # Subscription Service
   subscription-service:
     build:
       context: ./subscription-service
       dockerfile: Dockerfile
-    container_name: weather-subscription-service
+    container_name: subscription-service
     ports:
       - "3001:3001"
     environment:
@@ -98,7 +94,6 @@ services:
       - DB_PASSWORD=${DB_PASSWORD:-weather_password}
       - DB_NAME=${DB_NAME:-weather_db}
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:-weather_user}:${RABBITMQ_PASSWORD:-weather_password}@rabbitmq:5672
-      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key}
     depends_on:
       postgres:
         condition: service_healthy
@@ -112,21 +107,17 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 10s
 
-  # Weather Service  
   weather-service:
     build:
       context: ./weather-service
       dockerfile: Dockerfile
-    container_name: weather-weather-service
+    container_name: weather-service
     ports:
       - "3002:3002"
-    environment:
-      - NODE_ENV=production
-      - PORT=3002
-      - OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY}
-      - CACHE_TTL=300
+    env_file:
+      - weather-service/.env
     networks:
       - microservices-network
     restart: unless-stopped
@@ -135,9 +126,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 20s
+      start_period: 10s
 
-  # Scheduling Service
   scheduling-service:
     build:
       context: ./scheduling-service
@@ -163,14 +153,15 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 30s
+      start_period: 10s
 
-  # Notification Service
   notification-service:
     build:
       context: ./notification-service
       dockerfile: Dockerfile
     container_name: weather-notification-service
+    env_file:
+      - notification-service/.env.example
     ports:
       - "3004:3004"
     environment:
@@ -190,7 +181,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 30s
+      start_period: 10s
 
 volumes:
   postgres_data:
@@ -201,6 +192,3 @@ volumes:
 networks:
   microservices-network:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16

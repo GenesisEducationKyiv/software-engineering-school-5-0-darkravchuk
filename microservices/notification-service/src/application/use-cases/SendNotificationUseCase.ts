@@ -3,6 +3,7 @@ import { EmailAddress } from '../../domain/value-objects/EmailAddress';
 import { NotificationTemplate } from '../../domain/value-objects/NotificationTemplate';
 import { NotificationMetadata } from '../../domain/value-objects/NotificationMetadata';
 import { INotificationRepository } from '../../domain/repositories/INotificationRepository';
+import {IEmailSender} from '../../infrastructure/services/IEmailSender';
 
 export interface SendNotificationRequest {
   recipient: string;
@@ -18,13 +19,12 @@ export interface SendNotificationRequest {
 
 export interface SendNotificationResponse {
   notificationId: string;
-  status: string;
   scheduledFor: Date;
 }
 
 export class SendNotificationUseCase {
   constructor(
-    private readonly notificationRepository: INotificationRepository
+    private readonly emailSender: IEmailSender
   ) {}
 
   async execute(request: SendNotificationRequest): Promise<SendNotificationResponse> {
@@ -33,23 +33,13 @@ export class SendNotificationUseCase {
 
     const recipient = EmailAddress.fromString(request.recipient);
     const template = this.getTemplate(request);
-    const metadata = this.createMetadata(request);
 
     const notificationId = this.generateNotificationId();
 
-    const notification = Notification.create({
-      id: notificationId,
-      recipient,
-      template,
-      context: request.context,
-      metadata
-    });
-
-    await this.notificationRepository.save(notification);
+    this.emailSender.sendConfirmationEmail(recipient, template, request.context).then();
 
     return {
       notificationId,
-      status: notification.status,
       scheduledFor: new Date()
     };
   }

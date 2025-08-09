@@ -1,23 +1,25 @@
-// Domain interfaces
-import { INotificationRepository } from '../../domain/repositories/INotificationRepository';
-import { IEmailService } from '../../domain/repositories/IEmailService';
-import { IMessageBroker } from '../../domain/repositories/IMessageBroker';
+import { INotificationRepository } from '../../domain/repositories';
+import { IEmailService } from '../../domain/repositories';
+import { IMessageBroker } from '../../domain/repositories';
 
-// Use cases
 import {
   SendNotificationUseCase,
   ProcessNotificationUseCase,
   ProcessPendingNotificationsUseCase
 } from '../../application/use-cases';
 
-// Infrastructure implementations
 import { InMemoryNotificationRepository } from '../repositories/InMemoryNotificationRepository';
 import { SendGridEmailService } from '../services/SendGridEmailService';
 import { RabbitMQBroker } from '../messaging/RabbitMQBroker';
+import {IEmailSender} from '../services/IEmailSender';
+import {EmailSender} from '../services/EmailSender';
+import {IEmailProvider} from '../services/IEmailProvider';
+import {SendGridProvider} from '../services/emailProviders/SendGridProvider';
 
 export interface NotificationContainer {
   notificationRepository: INotificationRepository;
   emailService: IEmailService;
+  emailSender: IEmailSender;
   messageBroker: IMessageBroker;
   sendNotificationUseCase: SendNotificationUseCase;
   processNotificationUseCase: ProcessNotificationUseCase;
@@ -36,22 +38,23 @@ export interface NotificationConfig {
 }
 
 export function createNotificationContainer(config: NotificationConfig): NotificationContainer {
-  // Create repository instances
   const notificationRepository: INotificationRepository = new InMemoryNotificationRepository();
   const emailService: IEmailService = new SendGridEmailService();
   const messageBroker: IMessageBroker = new RabbitMQBroker(config.rabbitmqUrl);
 
-  // Create use cases with dependencies
-  const sendNotificationUseCase = new SendNotificationUseCase(notificationRepository);
   const processNotificationUseCase = new ProcessNotificationUseCase(notificationRepository, emailService);
   const processPendingNotificationsUseCase = new ProcessPendingNotificationsUseCase(
     notificationRepository,
     processNotificationUseCase
   );
+  const emailProvider: IEmailProvider = new SendGridProvider();
+  const emailSender: IEmailSender = new EmailSender(emailProvider);
+  const sendNotificationUseCase = new SendNotificationUseCase(emailSender);
 
   return {
     notificationRepository,
     emailService,
+    emailSender,
     messageBroker,
     sendNotificationUseCase,
     processNotificationUseCase,
